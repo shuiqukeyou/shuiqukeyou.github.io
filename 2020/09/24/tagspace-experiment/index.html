@@ -47,18 +47,20 @@
   };
 </script>
 
-  <meta name="description" content="一点关于自己研一一年的思考。">
+  <meta name="description" content="这东西有现成代码，可以直接跑，唯一的问题是代码在win下运行比较麻烦，最后在linux下完成的实验。 实验大约进行于2019年10月左右。 实验比较简单，这里仅简单记录结果。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="一年后看ITAG——写在itag源码分析之后">
-<meta property="og:url" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;21&#x2F;itag-review&#x2F;index.html">
+<meta property="og:title" content="itag的baseline——tagspace的实验">
+<meta property="og:url" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;24&#x2F;tagspace-experiment&#x2F;index.html">
 <meta property="og:site_name" content="ShuiQU">
-<meta property="og:description" content="一点关于自己研一一年的思考。">
-<meta property="article:published_time" content="2020-09-21T13:33:16.000Z">
-<meta property="article:modified_time" content="2020-09-21T13:58:19.995Z">
+<meta property="og:description" content="这东西有现成代码，可以直接跑，唯一的问题是代码在win下运行比较麻烦，最后在linux下完成的实验。 实验大约进行于2019年10月左右。 实验比较简单，这里仅简单记录结果。">
+<meta property="article:published_time" content="2020-09-24T07:16:43.000Z">
+<meta property="article:modified_time" content="2020-09-24T07:18:03.476Z">
 <meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="tagspace">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://shuiqu.moe/2020/09/21/itag-review/">
+<link rel="canonical" href="https://shuiqu.moe/2020/09/24/tagspace-experiment/">
 
 
 <script id="page-configurations">
@@ -70,7 +72,7 @@
   };
 </script>
 
-  <title>一年后看ITAG——写在itag源码分析之后 | ShuiQU</title>
+  <title>itag的baseline——tagspace的实验 | ShuiQU</title>
   
 
 
@@ -182,7 +184,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/21/itag-review/">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/24/tagspace-experiment/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -195,7 +197,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          一年后看ITAG——写在itag源码分析之后
+          itag的baseline——tagspace的实验
         </h2>
 
         <div class="post-meta">
@@ -206,7 +208,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-09-21 21:33:16 / 修改时间：21:58:19" itemprop="dateCreated datePublished" datetime="2020-09-21T21:33:16+08:00">2020-09-21</time>
+              <time title="创建时间：2020-09-24 15:16:43 / 修改时间：15:18:03" itemprop="dateCreated datePublished" datetime="2020-09-24T15:16:43+08:00">2020-09-24</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -214,14 +216,14 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E6%9D%82%E8%B0%88/" itemprop="url" rel="index">
-                    <span itemprop="name">杂谈</span>
+                  <a href="/categories/%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C/" itemprop="url" rel="index">
+                    <span itemprop="name">实验结果</span>
                   </a>
                 </span>
             </span>
 
           
-            <span id="/2020/09/21/itag-review/" class="post-meta-item leancloud_visitors" data-flag-title="一年后看ITAG——写在itag源码分析之后" title="阅读次数">
+            <span id="/2020/09/24/tagspace-experiment/" class="post-meta-item leancloud_visitors" data-flag-title="itag的baseline——tagspace的实验" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -236,8 +238,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/09/21/itag-review/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/21/itag-review/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/09/24/tagspace-experiment/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/24/tagspace-experiment/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -252,25 +254,56 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>一点关于自己研一一年的思考。</p>
+        <p>这东西有现成代码，可以直接跑，唯一的问题是代码在win下运行比较麻烦，最后在linux下完成的实验。</p>
+<p>实验大约进行于2019年10月左右。</p>
+<p>实验比较简单，这里仅简单记录结果。</p>
 <a id="more"></a>
 
-<h1 id="一年后看ITAG"><a href="#一年后看ITAG" class="headerlink" title="一年后看ITAG"></a>一年后看ITAG</h1><p>itag是An Integral Tag Recommendation Model for Textual Content 的模型名称。</p>
-<p>距离我做这个项目已经过了一年，我的研一生活也随之结束了，针对这个论文和这一年，我有一些想法。</p>
-<p>在itag的论文/源码分析中我提到，这篇论文是一个完美的缝合怪。实际上我对于这种论文，我有一个自己瞎造的词用来形容：科研工程论文。指的是那种虽然是论文，但是实际上是在做搭建现成技术这种偏工程向的活的论文。</p>
-<p>我没有任何看不起工程的意思，反倒是我自己很想去做工程，在我看来，自己做的一个东西能跑起来、实际作用、能直接给别人帮助更加的有意思，哪怕它本身只是非常低级的烂大街的成熟技术，比如那知乎篇<a href="https://zhuanlan.zhihu.com/p/25568492" target="_blank" rel="noopener">E-hentai47W大数据分析</a>的文章（对，这文章的作者就是我，我还指望每年来一篇新的呢，后来人就懒了）</p>
-<p>目前我对于这篇论文的总结就是，这是一篇非常成熟的科研工程论文。</p>
-<p>我的导师把它甩给我作为我的入门论文，并让我改良它，然后我磕它了快一年毛都没磕出来。0基础生吃一篇缝合怪本来就很慢。调通itag之后，导师直接让我再跑通itag的几个Baseline，弄得好像改良方案已经现成了，只等Baseline调通了马上就能跑结果发论文一样。</p>
-<p>结果就是我陪着这篇论文和它的几个基线系统磕了几乎整个研一上学期。最后还没做出啥来，因为并没有什么改良方案——他让我自己想改良方案，说看个几十篇论文自然就有改良方案了，然而我十分丢人，到现在一年过去了顶天也就看了20篇左右。</p>
-<p>主要的原因当然还是我能力不足，现在让我淦这么一篇缝合怪我速度快很多了（指实现），但是新手阶段硬上这篇论文本身就是一个不明智的选择。</p>
-<p>（至于研一下学期我干啥呢？一方面疫情期间待在家人懒了，另外导师嫌ITAG改不动让我跟风换了GCN，下学期折腾GCN、GraphSAGE、GAT这些GNN的东西去了，有一说一GCN真有意思）</p>
-<p>这种完美的缝合怪论文，作为一篇“入门”的论文是极好的。这里的“入门”指的是，通过阅读、实现这篇论文，可以快速了解这个领域在干些啥、在用什么技术，当然，实际上还是只能覆盖到一小部分。</p>
-<p>但它并不适合作为真·入门论文，快速了解许多技术意味着难度弹射起步，为了读懂这一篇论文需要查询大量的东西，而且是不成体系的查询。</p>
-<p>当码农的基本都知道，在各种查询中学习是学东西最快的，但这是有一定前提的，“面向搜索引擎开发”需要搭建一个知识基本盘之后效率才高，否则连自己该查个啥都不知道。这种东一锤子西一榔头的学习方法作为入门是很低效的。</p>
-<p>另外，起手怼成熟的缝合怪论文，会使得后续工作变得很难，也就是所谓的“前人的工作已经相当成熟了.jpg”。作为硬上itag的反例，同校其他实验室有拿GCN作为起手的（2019年热点之一），用这种新领域的开山之作作为起手，后续的部分好做的多。功利点说，往这种新的模型上套很多东西都能水上一篇。</p>
-<p>而磕缝合怪则难度很高，这篇缝合怪本身就是比较完美的工程学产物（缝合上顶会），并不是说缝合怪不能磕，工程学是需要大量经验的，搭模型的能力比itag的原作者还高自然可以硬磕。但是显然，一个双非的研一新生不可能有这个能力。</p>
-<p>简单一句话的总结就是，我对于我过去一年大部分时间花在怼itag这件事上的正确性是存疑的，现截断回头看的话，不应该起手就硬怼高级缝合怪。</p>
-<p>（当然也许我目前的这个看法在我若干年后回头来看又是另一回事，人是会变的，但现阶段我的想法就是如此）</p>
+<h2 id="tagspace简介"><a href="#tagspace简介" class="headerlink" title="tagspace简介"></a>tagspace简介</h2><p>直接搜tagspace会搜出一个同名软件，这里的tagspace指的是Weston等在2014年的论文<a href="https://www.aclweb.org/anthology/D14-1194/" target="_blank" rel="noopener">#TAGSPACE: Semantic Embeddings from Hashtags</a>中发表的模型，这个模型基于CNN对文本进行tag推荐，是一个单tag推荐模型。</p>
+<h2 id="实验条件"><a href="#实验条件" class="headerlink" title="实验条件"></a>实验条件</h2><p>数据集：ask Ubuntu论坛问答数据集</p>
+<p>数据集处理：单词表按词频截取前25000个词，tag按词频截取前2500个，文本最长保留100词，tag最长保留5个</p>
+<p>由于tagspace是单标签推荐模型，故学习时只学习每篇文档的第一个tag，预测时按照期望的输出tag数，从高到低取前X个。</p>
+<h2 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h2><table>
+<thead>
+<tr>
+<th align="center"></th>
+<th align="center">itag/@1</th>
+<th align="center">tagspace/@1</th>
+<th align="center">itag/@3</th>
+<th align="center">tagspace/@3</th>
+<th align="center">itag/@5</th>
+<th align="center">tagspace/@5</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">精确</td>
+<td align="center">0.759</td>
+<td align="center">0.155</td>
+<td align="center">0.527</td>
+<td align="center">0.204</td>
+<td align="center">0.389</td>
+<td align="center">0.174</td>
+</tr>
+<tr>
+<td align="center">召回</td>
+<td align="center">0.278</td>
+<td align="center">0.152</td>
+<td align="center">0.579</td>
+<td align="center">0.249</td>
+<td align="center">0.712</td>
+<td align="center">0.299</td>
+</tr>
+<tr>
+<td align="center">F1</td>
+<td align="center">0.407</td>
+<td align="center">0.54</td>
+<td align="center">0.552</td>
+<td align="center">0.225</td>
+<td align="center">0.503</td>
+<td align="center">0.218</td>
+</tr>
+</tbody></table>
+<p><strong>结论</strong>：结果基本和itag论文一致</p>
 
     </div>
 
@@ -279,6 +312,10 @@
     
 
       <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/NLP/" rel="tag"># NLP</a>
+              <a href="/tags/tagspace/" rel="tag"># tagspace</a>
+          </div>
 
         
 
@@ -286,13 +323,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/09/21/itag-paper/" rel="prev" title="论文/源码分析：An Integral Tag Recommendation Model for Textual Content">
-      <i class="fa fa-chevron-left"></i> 论文/源码分析：An Integral Tag Recommendation Model for Textual Content
+    <a href="/2020/09/24/lstm%E2%80%94-experiment/" rel="prev" title="TLSTM的改良实验">
+      <i class="fa fa-chevron-left"></i> TLSTM的改良实验
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/09/21/TLSTM-paper/" rel="next" title="论文分析/实现：Hashtag recommendation with topical attentionbased LSTM">
-      论文分析/实现：Hashtag recommendation with topical attentionbased LSTM <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -353,7 +387,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一年后看ITAG"><span class="nav-number">1.</span> <span class="nav-text">一年后看ITAG</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#tagspace简介"><span class="nav-number">1.</span> <span class="nav-text">tagspace简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验条件"><span class="nav-number">2.</span> <span class="nav-text">实验条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验结果"><span class="nav-number">3.</span> <span class="nav-text">实验结果</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
