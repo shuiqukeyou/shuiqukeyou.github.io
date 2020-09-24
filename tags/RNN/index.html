@@ -50,13 +50,13 @@
   <meta name="description" content="一直摸鱼一直爽">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ShuiQU">
-<meta property="og:url" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;tags&#x2F;RNN&#x2F;index.html">
+<meta property="og:url" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;tags&#x2F;rnn&#x2F;index.html">
 <meta property="og:site_name" content="ShuiQU">
 <meta property="og:description" content="一直摸鱼一直爽">
 <meta property="article:author" content="ShuiQu">
 <meta name="twitter:card" content="summary">
 
-<link rel="canonical" href="https://shuiqu.moe/tags/RNN/">
+<link rel="canonical" href="https://shuiqu.moe/tags/rnn/">
 
 
 <script id="page-configurations">
@@ -68,7 +68,7 @@
   };
 </script>
 
-  <title>标签: RNN | ShuiQU</title>
+  <title>标签: rnn | ShuiQU</title>
   
 
 
@@ -181,7 +181,7 @@
   <div class="post-block">
     <div class="posts-collapse">
       <div class="collection-title">
-        <h2 class="collection-header">RNN
+        <h2 class="collection-header">rnn
           <small>标签</small>
         </h2>
       </div>
@@ -196,35 +196,15 @@
 
       <div class="post-meta">
         <time itemprop="dateCreated"
-              datetime="2020-09-21T22:22:16+08:00"
-              content="2020-09-21">
-          09-21
+              datetime="2020-09-24T14:53:32+08:00"
+              content="2020-09-24">
+          09-24
         </time>
       </div>
 
       <h3 class="post-title">
-          <a class="post-title-link" href="/2020/09/21/TLSTM-paper/" itemprop="url">
-            <span itemprop="name">论文分析/实现：Hashtag recommendation with topical attentionbased LSTM</span>
-          </a>
-      </h3>
-
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-
-      <div class="post-meta">
-        <time itemprop="dateCreated"
-              datetime="2020-09-21T20:21:21+08:00"
-              content="2020-09-21">
-          09-21
-        </time>
-      </div>
-
-      <h3 class="post-title">
-          <a class="post-title-link" href="/2020/09/21/itag-paper/" itemprop="url">
-            <span itemprop="name">论文/源码分析：An Integral Tag Recommendation Model for Textual Content</span>
+          <a class="post-title-link" href="/2020/09/24/lstm%E2%80%94-experiment/" itemprop="url">
+            <span itemprop="name">TLSTM的改良实验</span>
           </a>
       </h3>
 
@@ -301,19 +281,19 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">4</span>
+          <span class="site-state-item-count">5</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
       <div class="site-state-item site-state-categories">
             <a href="/categories/">
-        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-count">4</span>
         <span class="site-state-item-name">分类</span></a>
       </div>
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">8</span>
+        <span class="site-state-item-count">9</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -406,6 +386,33 @@
 NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
   NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
     var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
+UEST = ['nick', 'mail', 'link'];
     var guest = 'nick,mail,link';
     guest = guest.split(',').filter(item => {
       return GUEST.includes(item);
