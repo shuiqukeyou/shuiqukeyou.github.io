@@ -58,7 +58,7 @@
 <meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;21&#x2F;itag-paper&#x2F;image-20200921203428877.png">
 <meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;21&#x2F;itag-paper&#x2F;image-20200921205329551.png">
 <meta property="article:published_time" content="2020-09-21T12:21:21.000Z">
-<meta property="article:modified_time" content="2020-09-21T13:11:20.572Z">
+<meta property="article:modified_time" content="2020-09-24T10:08:40.959Z">
 <meta property="article:author" content="ShuiQu">
 <meta property="article:tag" content="GRU">
 <meta property="article:tag" content="RNN">
@@ -215,10 +215,16 @@
                 <i class="fa fa-calendar-o"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2020-09-21 20:21:21 / 修改时间：21:11:20" itemprop="dateCreated datePublished" datetime="2020-09-21T20:21:21+08:00">2020-09-21</time>
+              <time title="创建时间：2020-09-21 20:21:21" itemprop="dateCreated datePublished" datetime="2020-09-21T20:21:21+08:00">2020-09-21</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-24 18:08:40" itemprop="dateModified" datetime="2020-09-24T18:08:40+08:00">2020-09-24</time>
+              </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
                 <i class="fa fa-folder-o"></i>
@@ -269,6 +275,7 @@
 
 <h1 id="论文背景"><a href="#论文背景" class="headerlink" title="论文背景"></a>论文背景</h1><p>本文提出了一种基于Seq2Seq的文本多tag推荐模型。读入序列为文本内容，输出序列为tag。</p>
 <p>由于Seq2Seq模型的输出是一个序列，因此用Seq2Seq做多tag推荐天然优于那些单靠全连接层+softmax的模型。</p>
+<p>（官方提供一个py2版本的代码，我基于官方版本修改出了一个支持py3的<a href="https://github.com/shuiqukeyou/itag_py3" target="_blank" rel="noopener">版本</a>，使其能支持高版本CUDA）</p>
 <h1 id="论文分析"><a href="#论文分析" class="headerlink" title="论文分析"></a>论文分析</h1><p>这篇论文其实很有意思，运用了NLP领域中多种常见的技术，完美的缝合怪（没有指摘的意思，做完美缝合怪是一件难度很大的事），作为入门论文也很好，硬吃下来需要查阅了解它用到的所有的技术。</p>
 <h2 id="创新点分析"><a href="#创新点分析" class="headerlink" title="创新点分析"></a>创新点分析</h2><p>论文声称，他们考虑了多标签推荐任务的特性，提出了多标签推荐任务的三个要素：</p>
 <ul>

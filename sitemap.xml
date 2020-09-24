@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://shuiqu.moe/2020/09/21/itag-paper/</loc>
+    
+    <lastmod>2020-09-24T10:08:40.959Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://shuiqu.moe/2020/09/24/lstm%E2%80%94-experiment/</loc>
     
     <lastmod>2020-09-24T10:04:46.317Z</lastmod>
@@ -26,13 +33,6 @@
     <loc>https://shuiqu.moe/2020/09/21/itag-review/</loc>
     
     <lastmod>2020-09-21T13:58:19.995Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://shuiqu.moe/2020/09/21/itag-paper/</loc>
-    
-    <lastmod>2020-09-21T13:11:20.572Z</lastmod>
     
   </url>
   
