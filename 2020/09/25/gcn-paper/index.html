@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="大名鼎鼎的GCN的论文，由于这篇论文相当的出名，并且有很多大手子的详细的解读，我就不在这里班门弄斧，摆公式列理论啥的分析论文了，仅仅写一些个人的理解。 阅读这篇论文的时间点大概是在2019年11月左右，当时ITAG的改进方案没有头绪，导师让我尝试一下将GCN塞到ITAG的中去，理由是itag只利用了文本本身的信息，而GCN利用了数据之间的结构信息，因而如果能同时利用这两个信息，应该能提升tag推荐">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS">
+<meta property="og:url" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="大名鼎鼎的GCN的论文，由于这篇论文相当的出名，并且有很多大手子的详细的解读，我就不在这里班门弄斧，摆公式列理论啥的分析论文了，仅仅写一些个人的理解。 阅读这篇论文的时间点大概是在2019年11月左右，当时ITAG的改进方案没有头绪，导师让我尝试一下将GCN塞到ITAG的中去，理由是itag只利用了文本本身的信息，而GCN利用了数据之间的结构信息，因而如果能同时利用这两个信息，应该能提升tag推荐">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925160156495.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925160631960.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925165201013.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image001.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image002.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image004.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image005.png">
+<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image007.png">
+<meta property="article:published_time" content="2020-09-25T08:33:41.000Z">
+<meta property="article:modified_time" content="2020-09-25T09:14:18.523Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="GCN">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925160156495.png">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/09/25/gcn-paper/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/25/gcn-paper/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-09-25 16:33:41 / 修改时间：17:14:18" itemprop="dateCreated datePublished" datetime="2020-09-25T16:33:41+08:00">2020-09-25</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index">
+                    <span itemprop="name">论文阅读</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/09/25/gcn-paper/" class="post-meta-item leancloud_visitors" data-flag-title="论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/25/gcn-paper/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/25/gcn-paper/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>大名鼎鼎的<strong>GCN</strong>的论文，由于这篇论文相当的出名，并且有很多大手子的详细的解读，我就不在这里班门弄斧，摆公式列理论啥的分析论文了，仅仅写一些个人的理解。</p>
+<p>阅读这篇论文的时间点大概是在2019年11月左右，当时ITAG的改进方案没有头绪，导师让我尝试一下将GCN塞到ITAG的中去，理由是itag只利用了文本本身的信息，而GCN利用了数据之间的结构信息，因而如果能同时利用这两个信息，应该能提升tag推荐的效果。</p>
+<a id="more"></a>
+
+<h2 id="从图神经网络-GNN-开始"><a href="#从图神经网络-GNN-开始" class="headerlink" title="从图神经网络(GNN)开始"></a>从图神经网络(GNN)开始</h2><p>神经网络这东西有各种结构的，线性的、非线性的，但归根结底，神经网络是在各个节点间进行数据交换，并交换时进行一定的计算。因而，自然也有人使用图（graph）结构来构建神经网络。</p>
+<img src="/2020/09/25/gcn-paper/image-20200925160156495.png" class="" title="graph">
+
+<center><b>图的组织结构</b></center
+
+
+
+<p>GCN是GNN的一个分支，全称为图卷积神经网络，顾名思义，GCN是在图上进行“卷积”操作的GNN，这里用引号是因为，GCN的操作并不是卷积神经网络里的那个卷积，这里的卷积，是因为GCN的运算是在聚合节点周围其他节点的信息，与卷积神经网络（CNN）的行为类似。不过话说回来，CNN里的“卷积”，也并不是不是数学意义上的卷积。</p>
+<img src="/2020/09/25/gcn-paper/image-20200925160631960.png" class="" title="CNN-GCN">
+
+<center><b>CNN的聚合和GCN的聚合</b></center>
+
+
+
+<p>通过聚合周围邻居节点的信息，可以增加当前节点的信息量，这点和图片的卷积依然很类似。另外，由于图的结构是不规整的，哪怕节点本身不含有任何信息，图的结构就已经包含一些信息。例如:</p>
+<img src="/2020/09/25/gcn-paper/image-20200925165201013.png" class="">
+
+<p>图中的节点的分类实际上可以由人眼从结构中直接看出来。</p>
+<p>事实上，GCN有两个信息流通途径，一种是节点本身带有的有效信息的，在这个信息路径下，GCN主要起到的的是聚合邻域信息的作用，通过和附近的节点交换信息。使得在空间上接近的节点拥有类似的特征。</p>
+<p>另一个信息路径是，哪怕节点本身完全不含有任何有效特征，只进行随机初始化，GCN也能挖掘隐藏在图结构中的信息，最终令同类节点获得类似的特征。方法一二的出发点是完全不同，但最终的目的是一样的，GCN能同时聚合这两类信息。</p>
+<p>图神经网络的本质就是：<strong>图中的任何一个节点，都受到和它相连的其他节点的影响，距离越近，影响越大。而一个图中的所有节点间的互动关系，和每个节点本身的信息，就构成了这整张图的全部信息。</strong></p>
+<h2 id="GCN的创新点"><a href="#GCN的创新点" class="headerlink" title="GCN的创新点"></a>GCN的创新点</h2><p>由于CNN已经是个相当成熟的技术了，聚合“邻居”的信息并不是什么少见的思路。显然，从GNN出现开始，就必然会有人尝试在GNN上进行类似CNN的“聚合节点信息”操作。事实上在GCN之前，就已经有一些关于类似的研究了。但不外乎存在计算量大、聚合效果差、卷积核复杂的问题。</p>
+<p>GCN的创新之处在于，提出了一种简化到在计算量上可行且效果好的“卷积”计算方案。</p>
+<p>这个部分，网上能找到许多大手子对于这个卷积方案的推导和证明，GCN论文前面的大部分内容也是在进行这个工作：从拉普拉斯变换推出GCN滤波器，并且证明能用这个滤波器来进行快速逼近卷积。</p>
+<p>我懒外加底力有限，就不在这里推一遍GCN的公式了。而选择直接逼近的本质：这个滤波器干了啥，以及怎么用。</p>
+<h2 id="GCN计算流程"><a href="#GCN计算流程" class="headerlink" title="GCN计算流程"></a>GCN计算流程</h2><h3 id="图的信息传播"><a href="#图的信息传播" class="headerlink" title="图的信息传播"></a>图的信息传播</h3><p>首先定义图的组成，一张图由两个要素组成，图中的点和边，有了一张图中的所有的点和边的信息，自然就能描述一张图。</p>
+<p>在GCN中，图中所有的点的信息依靠一个<strong>特征矩阵X</strong>进行表示。X为NxD维，N为节点个数，D为每个节点的特征个数。而边信息通过<strong>邻接矩阵A</strong>进行表示，邻接矩阵为NxN维。</p>
+<p>这样可以将每层图的计算写成一个函数形式</p>
+<img src="/2020/09/25/gcn-paper/clip_image001.png" class="">
+
+<p>其中A是邻接矩阵，H是每层的节点信息，l是层数，f(,)是计算规则。</p>
+<p>这个公式的意思是，通过一定的运算规则，结合本层的各节点状态，和节点间的关系，获得下一层的节点状态。在整个计算过程中，节点间的关系（边）是不发生变化的。</p>
+<p>而GCN（以及其他图的信息传播算法）的重点就是这个计算规则。</p>
+<h3 id="GCN的信息传播规则"><a href="#GCN的信息传播规则" class="headerlink" title="GCN的信息传播规则"></a>GCN的信息传播规则</h3><p>GCN定义了这样一个层间的传播规则</p>
+<img src="/2020/09/25/gcn-paper/clip_image002.png" class="">
+
+<p>其中，H是每层的节点信息，W是每层的节点权重（需要进行学习），A~是通过邻接矩阵计算出的一个滤波矩阵。而：</p>
+<img src="/2020/09/25/gcn-paper/clip_image004.png" class="">
+
+<p>其中</p>
+<img src="/2020/09/25/gcn-paper/clip_image005.png" class="">
+
+<p>上式只是对邻接矩阵添加了自连接。之所以添加自连接，是因为如果不添加自连接，则层间传播只会聚合邻居节点的信息，而不会使用节点自身的信息。</p>
+<p>而D^是A~的对角节点度矩阵，计算公式如下：</p>
+<img src="/2020/09/25/gcn-paper/clip_image007.png" class="">
+
+<p><strong>简单来说，就是GCN利用邻接矩阵算出了这个滤波矩阵，然后利用这个滤波矩阵进行层间传播</strong></p>
+<p>至于啥是滤波矩阵，为什么作者用了这个东西进行计算，就涉及到GCN的数学推论部分了，这是GCN的核心创新点。作者从拉普拉斯变换出发，推出了这个滤波矩阵，并证明了其有效性，这也是许多人看的头大的地方。</p>
+<p>但如果只是想用GCN的话，也不是非要看懂。A~和D^的计算本身都不难，可以自己实现，进而自己实现整个GCN也不会太难。如果连A~和D^的计算代码都完不成，常见的集成了GCN的包都内置了这个滤波矩阵的计算方法，只需要传入邻接矩阵即可。</p>
+<h2 id="GCN的输出"><a href="#GCN的输出" class="headerlink" title="GCN的输出"></a>GCN的输出</h2><p>GCN的重点就是上面的<strong>传播规则</strong>，几乎可以说是<strong>唯一</strong>的重点。剩下的工作就是利用聚合后的信息。</p>
+<p>GCN的信息聚合通常进行两到三次，作者的实验表明，叠加更多的GCN层无益于性能提升，甚至是有害的，如果有必要叠加较多GCN层，建议使用残差连接——这也是模仿了CNN中的残差连接。</p>
+<p>在完成数层GCN的计算后，会获得一张图，图的结构和最初输入的一样，但每个节点的特征值已经发生了很大的改变，这些改变后的特征值既隐含了每个节点周围节点信息，也隐含了每个节点和邻居节点间的结构信息。接下来就是对获得的特征值进行后续计算。</p>
+<p>仅考虑作者在本论文中进行的相关工作的话（包括作者在其一篇<a href="http://tkipf.github.io/graph-convolutional-networks/" target="_blank" rel="noopener">博客文章</a>中对于GCN的分析），作者没有进行复杂的后续计算，而是直接通过softmax输出了结果。而后续的针对GCN的一些改良有出现许多使用了复杂输出的模型。</p>
+<p>实验结果、baseline的分析等就不进行了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GCN/" rel="tag"># GCN</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/24/tagspace-experiment/" rel="prev" title="itag的baseline——tagspace的实验">
+      <i class="fa fa-chevron-left"></i> itag的baseline——tagspace的实验
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#从图神经网络-GNN-开始"><span class="nav-number">1.</span> <span class="nav-text">从图神经网络(GNN)开始</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GCN的创新点"><span class="nav-number">2.</span> <span class="nav-text">GCN的创新点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GCN计算流程"><span class="nav-number">3.</span> <span class="nav-text">GCN计算流程</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#图的信息传播"><span class="nav-number">3.1.</span> <span class="nav-text">图的信息传播</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#GCN的信息传播规则"><span class="nav-number">3.2.</span> <span class="nav-text">GCN的信息传播规则</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#GCN的输出"><span class="nav-number">4.</span> <span class="nav-text">GCN的输出</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
