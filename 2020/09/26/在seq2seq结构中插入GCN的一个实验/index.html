@@ -47,24 +47,23 @@
   };
 </script>
 
-  <meta name="description" content="itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。 itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了(项目地址)。由于其只是个baseline，外加比较简单，故只进行简单分析。">
+  <meta name="description" content="我之开始研究GCN是为了用GCN改良itag，而itag本质上是个seq2seq模型。因此我尝试了使用GCN改良一个最简单的单层GRU的seq2seq模型。 （这个实验大约进行于2019年11月）">
 <meta property="og:type" content="article">
-<meta property="og:title" content="论文分析&#x2F;实现：Hashtag recommendation with topical attentionbased LSTM">
-<meta property="og:url" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/index.html">
+<meta property="og:title" content="在seq2seq结构中插入GCN的一个实验">
+<meta property="og:url" content="https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/index.html">
 <meta property="og:site_name" content="ShuiQU">
-<meta property="og:description" content="itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。 itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了(项目地址)。由于其只是个baseline，外加比较简单，故只进行简单分析。">
-<meta property="og:image" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/image-20200921220522529.png">
-<meta property="article:published_time" content="2020-09-21T14:22:16.000Z">
-<meta property="article:modified_time" content="2020-09-21T14:35:07.453Z">
+<meta property="og:description" content="我之开始研究GCN是为了用GCN改良itag，而itag本质上是个seq2seq模型。因此我尝试了使用GCN改良一个最简单的单层GRU的seq2seq模型。 （这个实验大约进行于2019年11月）">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/image-20200926165742999.png">
+<meta property="article:published_time" content="2020-09-26T09:04:36.000Z">
+<meta property="article:modified_time" content="2020-09-26T09:08:14.853Z">
 <meta property="article:author" content="ShuiQu">
 <meta property="article:tag" content="GRU">
-<meta property="article:tag" content="LSTM">
-<meta property="article:tag" content="RNN">
-<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="GCN">
+<meta property="article:tag" content="seq2seq">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/image-20200921220522529.png">
+<meta name="twitter:image" content="https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/image-20200926165742999.png">
 
-<link rel="canonical" href="https://shuiqu.moe/2020/09/21/TLSTM-paper/">
+<link rel="canonical" href="https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/">
 
 
 <script id="page-configurations">
@@ -76,7 +75,7 @@
   };
 </script>
 
-  <title>论文分析/实现：Hashtag recommendation with topical attentionbased LSTM | ShuiQU</title>
+  <title>在seq2seq结构中插入GCN的一个实验 | ShuiQU</title>
   
 
 
@@ -188,7 +187,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/21/TLSTM-paper/">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -201,7 +200,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          论文分析/实现：Hashtag recommendation with topical attentionbased LSTM
+          在seq2seq结构中插入GCN的一个实验
         </h2>
 
         <div class="post-meta">
@@ -212,7 +211,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-09-21 22:22:16 / 修改时间：22:35:07" itemprop="dateCreated datePublished" datetime="2020-09-21T22:22:16+08:00">2020-09-21</time>
+              <time title="创建时间：2020-09-26 17:04:36 / 修改时间：17:08:14" itemprop="dateCreated datePublished" datetime="2020-09-26T17:04:36+08:00">2020-09-26</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -220,14 +219,14 @@
               </span>
               <span class="post-meta-item-text">分类于</span>
                 <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index">
-                    <span itemprop="name">论文阅读</span>
+                  <a href="/categories/%E5%AE%9E%E9%AA%8C%E7%BB%93%E6%9E%9C/" itemprop="url" rel="index">
+                    <span itemprop="name">实验结果</span>
                   </a>
                 </span>
             </span>
 
           
-            <span id="/2020/09/21/TLSTM-paper/" class="post-meta-item leancloud_visitors" data-flag-title="论文分析/实现：Hashtag recommendation with topical attentionbased LSTM" title="阅读次数">
+            <span id="/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/" class="post-meta-item leancloud_visitors" data-flag-title="在seq2seq结构中插入GCN的一个实验" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -242,8 +241,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/09/21/TLSTM-paper/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/21/TLSTM-paper/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -258,19 +257,83 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。</p>
-<p>itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了<a href="https://github.com/shuiqukeyou/tlstm_py3" target="_blank" rel="noopener">(项目地址)</a>。由于其只是个baseline，外加比较简单，故只进行简单分析。</p>
+        <p>我之开始研究GCN是为了用GCN改良itag，而itag本质上是个seq2seq模型。因此我尝试了使用GCN改良一个最简单的单层GRU的seq2seq模型。</p>
+<p>（这个实验大约进行于2019年11月）</p>
 <a id="more"></a>
 
+<h2 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h2><p>任务背景是为文本推荐多个标签。</p>
+<p>seq2seq模型由两个部分组成，一个编码器和一个解码器，模型编码器，将输入的序列（seq）编码为一个隐藏向量，然后解码器接受这个编码后的隐藏向量，输出一个序列（seq）。</p>
+<p>而GCN通过在节点间进行信息传播，可以聚合临近节点的信息，使得同类节点的输出趋近。对于tag推荐任务，（理论上）可以提高tag推荐的效果。</p>
+<h2 id="设想的实现形式"><a href="#设想的实现形式" class="headerlink" title="设想的实现形式"></a>设想的实现形式</h2><p>因为GCN是使得同类节点的输出趋向于接近，而seq2seq模型的解码器在接收到编码序列后就开始进行输出了，而在seq2seq模型的编码器对文本进行编码之前，数据的信息量极低。那么自然而然的，我就想到了在编码器和解码器之间插入GCN。</p>
+<img src="/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/image-20200926165742999.png" class="" title="插入GCN后的seq2seq">
 
-
-<h2 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h2><p>本论文使用了LDA和LSTM对文本进行建模，然后使用attiention机制结合LDA和LSTM输出的编码向量，最后对编码向量使用softmax进行输出，结构图如下：</p>
-<p>和原模型不同地方在于，我将LSTM单元替换为了GRU，根据论文<a href="https://arxiv.org/pdf/1412.3555v1.pdf" target="_blank" rel="noopener">Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling</a>的结果来看，除非有必要使用LSTM（例如需要使用LSTM单元的记忆门的值），否则使用GRU的结果通常优于LSTM</p>
-<img src="/2020/09/21/TLSTM-paper/image-20200921220522529.png" class="" title="This is an image">
-
-<p>计算流程如下：</p>
-<p>文本分别送入GRU编码器和LDA模型中（LDA模型是提前进行训练好的），然后将LDA的主题向量和编码器输出的时间步序列输入到注意力层中，计算后进行输出，输出层使用softmax函数。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个模型的相当于使用LDA对文本的类型进行了一个预判，预判的类别信息可以改善GRU的模型输出结果。另外，不同于通常的基于RNN的文本分类器/单tag推荐任务（它们通常使用最终的state向量进行softmax计算），由于使用了attention，模型最终用于输出tag的信息是时间步序列，这种情况下模型受梯度爆炸/消失的影响较小。</p>
+<p>对文档进行编码后，通过GCN对文本的编码向量进行平滑，使得可能拥有相似tag的文本的编码向量更加接近，然后再使用解码器进行输出。</p>
+<h2 id="实验部分"><a href="#实验部分" class="headerlink" title="实验部分"></a>实验部分</h2><p>实验前有一个问题需要解决：<strong>图的构建方法</strong>。同类节点的定义是：拥有相似tag的文本节点。但是这里的一个前提是，已经提前知道所有文档的tag才能构建图。但在实际任务中，显然是无法知道所有文档的tag的，必须使用另一个方案建立文档图，而建图的方法对于GCN的效果有很大的影响。</p>
+<p>在这个实验中我选择使用LDA进行图的构建，一方面是因为我不久之前刚知道了LDA这个主题算法（来自TLSTM），理论上，LDA可以捕捉到一定的文本的主题信息，而主题接近的文本拥有相似tag的概率应该也较高。另一方面LDA在TLSTM中被证明对于单tag推荐任务确实有正面作用。</p>
+<p>另外一个问题是，这时候我还不知道怎么实现对于GCN的验证和测试，因为一次性需要塞入全部数据的话，验证和测试怎么做嘛（当时的想法），所以实验结果是训练时输出的准确度和召回率。这里又引出一个问题，seq2seq模型的训练的准确度和召回率参考意义根本不大，这涉及到seq2seq模型的工作原理，学习和预测时的行为根本不一样，但我姑且是硬着头皮做了先看看结果。</p>
+<h3 id="实验条件"><a href="#实验条件" class="headerlink" title="实验条件"></a>实验条件</h3><p>由于GCN需要一次读入所有的数据才能进行运算（所以有了一些采样计算的方法），在进行这个实验的时候就被这点卡住了。我的2070S的显存根本扛不住，好在单层GRU+GCN的结构不算太复杂，即使塞内存运算速度也还能接受。但是即使这样也只使用了一部分数据集。</p>
+<p>数据集：ask Ubuntu论坛提问数据集（仅使用5%）</p>
+<p>总共预测五个tag。</p>
+<p>实验模型：</p>
+<ul>
+<li>itag</li>
+<li>单层itag（itag原版为3层GRU，这里修改为1层和普通单层seq2seq对比作为参照）</li>
+<li>单层GRU的seq2seq</li>
+<li>插入了一层GCN的单层seq2seq</li>
+</ul>
+<p>标准itag作为baseline，理论上应该是itag的效果好于单层itag，而使用了各种机制的单层itag又应该好于普通的seq2seq。重点是观察加入一层GCN的seq2seq。选择只加入一层是因为这里是定性用，如果有改善效果，单层GRU应该就已经能体现出来了。</p>
+<p>实验指标：使用多tag推荐任务的常用的精确度、召回率、F1</p>
+<h3 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h3><table>
+<thead>
+<tr>
+<th>模型名</th>
+<th>精确度</th>
+<th>召回率</th>
+<th>F1</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>itag</td>
+<td>0.246077</td>
+<td>0.292881</td>
+<td>0.267451</td>
+</tr>
+<tr>
+<td>itag（单层）</td>
+<td>0.271357</td>
+<td>0.321762</td>
+<td>0.294418</td>
+</tr>
+<tr>
+<td>seq2seq</td>
+<td>0.358496</td>
+<td>0.391182</td>
+<td>0.330851</td>
+</tr>
+<tr>
+<td>seq2seq+GCN</td>
+<td>0.284871</td>
+<td>0.312474</td>
+<td>0.298034</td>
+</tr>
+</tbody></table>
+<p>实验结果和我预想的出入很大，itag、单层itag和seq2seq的结果和我想象的完全是相反的；而在seq2seq中加入GCN之后效果反而更差</p>
+<p>前者的原因可能是数据集过少，itag是个比较复杂的模型，即使抽掉两层GRU，单层的GRU的itag仍然是比较复杂的模型。为了控制变量，数据集量和GCN部分一样的少，这种情况下反而是越简单的模型效果较好。</p>
+<p>而后者可能的原因较为复杂，我当时推测的原因可能有：</p>
+<ol>
+<li>基于LDA主题词的图构建方法不适合图卷积</li>
+<li>单层卷积效果不够</li>
+<li>seq2seq+GCN的数据集不足，过拟合</li>
+<li>模型实现有误（我手动实现了GCN）</li>
+<li>通过GCN平滑seq2seq隐藏状态这条路行不通</li>
+</ol>
+<p>由于tensorflow不带GCN，所以我手动实现了GCN，没有直接复制粘贴GCN本身的源码。看过GCN源码的人应该知道，作者自己实现了Model和Layer超类，然后基础这两个类写了GCN等其他层和模型。</p>
+<p>当时我认为，要么在作者的框架下实现一个GRU，要么在keras的框架下实现一个GCN，显然是后者比较简单，所以我选择了后者。（其实可以仿照GCN作者的代码对tensorflow的GRU做一个包装，当时还不会）</p>
+<p>现在回头来看，2、3是不成立的。</p>
+<p>对于2，如果GCN能起到积极作用，那么那么一层也是能表现出来的。</p>
+<p>对于3，GCN本身并不是一个对于数据集大小特别敏感的算法，在GCN中，每个节点只和自己的邻居节点交换数据，N层GCN就能让节点拿到N跳外的节点的数据。但是GCN通常都不会叠很多层（何况我只使用了一层），这也是graphSAGE这类图采样算法能正常工作的基本原理。在信息交换范围之外的节点对于当前节点没有任何影响。</p>
+<p>对于4，时至今日我也没去验证，验证方法应该是切到自带GCN的框架，比如pytorch，然后直接调用自带的GRU和GCN进行试验。但GCN本身的计算过程并不难，我倾向于我没有实现错。</p>
+<p>对于1和5，需要后续试验进行验证。而我后面的一些工作也是在验证1和5</p>
 
     </div>
 
@@ -281,9 +344,8 @@
       <footer class="post-footer">
           <div class="post-tags">
               <a href="/tags/GRU/" rel="tag"># GRU</a>
-              <a href="/tags/LSTM/" rel="tag"># LSTM</a>
-              <a href="/tags/RNN/" rel="tag"># RNN</a>
-              <a href="/tags/NLP/" rel="tag"># NLP</a>
+              <a href="/tags/GCN/" rel="tag"># GCN</a>
+              <a href="/tags/seq2seq/" rel="tag"># seq2seq</a>
           </div>
 
         
@@ -292,13 +354,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/09/21/itag-review/" rel="prev" title="一年后看ITAG——写在itag源码分析之后">
-      <i class="fa fa-chevron-left"></i> 一年后看ITAG——写在itag源码分析之后
+    <a href="/2020/09/25/gcn-paper/" rel="prev" title="论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS">
+      <i class="fa fa-chevron-left"></i> 论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/09/24/lstm%E2%80%94-experiment/" rel="next" title="TLSTM的改良实验">
-      TLSTM的改良实验 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -359,7 +418,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#模型分析"><span class="nav-number">1.</span> <span class="nav-text">模型分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#原理分析"><span class="nav-number">1.</span> <span class="nav-text">原理分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设想的实现形式"><span class="nav-number">2.</span> <span class="nav-text">设想的实现形式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验部分"><span class="nav-number">3.</span> <span class="nav-text">实验部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实验条件"><span class="nav-number">3.1.</span> <span class="nav-text">实验条件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实验结果"><span class="nav-number">3.2.</span> <span class="nav-text">实验结果</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/</loc>
+    <lastmod>2020-09-26</lastmod>
+  </url>  <url>
+    <loc>https://shuiqu.moe/2019/12/19/hello%20world/</loc>
+    <lastmod>2020-09-25</lastmod>
+  </url>  <url>
     <loc>https://shuiqu.moe/2020/09/25/gcn-paper/</loc>
     <lastmod>2020-09-25</lastmod>
   </url>  <url>
@@ -18,8 +24,5 @@
   </url>  <url>
     <loc>https://shuiqu.moe/2020/09/21/itag-review/</loc>
     <lastmod>2020-09-21</lastmod>
-  </url>  <url>
-    <loc>https://shuiqu.moe/2019/12/19/hello%20world/</loc>
-    <lastmod>2019-12-19</lastmod>
   </url>
 </urlset>

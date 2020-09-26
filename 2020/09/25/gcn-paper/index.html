@@ -50,23 +50,23 @@
   <meta name="description" content="大名鼎鼎的GCN的论文，由于这篇论文相当的出名，并且有很多大手子的详细的解读，我就不在这里班门弄斧，摆公式列理论啥的分析论文了，仅仅写一些个人的理解。 阅读这篇论文的时间点大概是在2019年11月左右，当时ITAG的改进方案没有头绪，导师让我尝试一下将GCN塞到ITAG的中去，理由是itag只利用了文本本身的信息，而GCN利用了数据之间的结构信息，因而如果能同时利用这两个信息，应该能提升tag推荐">
 <meta property="og:type" content="article">
 <meta property="og:title" content="论文阅读：SEMI-SUPERVISED CLASSIFICATION WITH GRAPH CONVOLUTIONAL NETWORKS">
-<meta property="og:url" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;index.html">
+<meta property="og:url" content="https://shuiqu.moe/2020/09/25/gcn-paper/index.html">
 <meta property="og:site_name" content="ShuiQU">
 <meta property="og:description" content="大名鼎鼎的GCN的论文，由于这篇论文相当的出名，并且有很多大手子的详细的解读，我就不在这里班门弄斧，摆公式列理论啥的分析论文了，仅仅写一些个人的理解。 阅读这篇论文的时间点大概是在2019年11月左右，当时ITAG的改进方案没有头绪，导师让我尝试一下将GCN塞到ITAG的中去，理由是itag只利用了文本本身的信息，而GCN利用了数据之间的结构信息，因而如果能同时利用这两个信息，应该能提升tag推荐">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925160156495.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925160631960.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925165201013.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image001.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image002.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image004.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image005.png">
-<meta property="og:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;clip_image007.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/image-20200925160156495.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/image-20200925160631960.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/image-20200925165201013.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/clip_image001.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/clip_image002.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/clip_image004.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/clip_image005.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/clip_image007.png">
 <meta property="article:published_time" content="2020-09-25T08:33:41.000Z">
 <meta property="article:modified_time" content="2020-09-25T09:14:18.523Z">
 <meta property="article:author" content="ShuiQu">
 <meta property="article:tag" content="GCN">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https:&#x2F;&#x2F;shuiqu.moe&#x2F;2020&#x2F;09&#x2F;25&#x2F;gcn-paper&#x2F;image-20200925160156495.png">
+<meta name="twitter:image" content="https://shuiqu.moe/2020/09/25/gcn-paper/image-20200925160156495.png">
 
 <link rel="canonical" href="https://shuiqu.moe/2020/09/25/gcn-paper/">
 
@@ -341,7 +341,10 @@
     <a href="/2020/09/24/tagspace-experiment/" rel="prev" title="itag的baseline——tagspace的实验">
       <i class="fa fa-chevron-left"></i> itag的baseline——tagspace的实验
     </a></div>
-      <div class="post-nav-item"></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/" rel="next" title="在seq2seq结构中插入GCN的一个实验">
+      在seq2seq结构中插入GCN的一个实验 <i class="fa fa-chevron-right"></i>
+    </a></div>
     </div>
       </footer>
     
@@ -415,7 +418,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-count">8</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
