@@ -58,7 +58,7 @@
 <meta property="og:image" content="https://shuiqu.moe/2020/09/21/itag-paper/image-20200921203428877.png">
 <meta property="og:image" content="https://shuiqu.moe/2020/09/21/itag-paper/image-20200921205329551.png">
 <meta property="article:published_time" content="2020-09-21T12:21:21.000Z">
-<meta property="article:modified_time" content="2020-09-24T10:08:40.959Z">
+<meta property="article:modified_time" content="2020-09-29T09:00:53.327Z">
 <meta property="article:author" content="ShuiQu">
 <meta property="article:tag" content="GRU">
 <meta property="article:tag" content="RNN">
@@ -223,7 +223,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2020-09-24 18:08:40" itemprop="dateModified" datetime="2020-09-24T18:08:40+08:00">2020-09-24</time>
+                <time title="修改时间：2020-09-29 17:00:53" itemprop="dateModified" datetime="2020-09-29T17:00:53+08:00">2020-09-29</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -291,23 +291,23 @@
 <p>内容标签重叠也不是特别新颖的点，Tag2Word（CIKM 2016）就是使用了这个思路，但作者实现的方法很有新意，将在后面的模型分析中说明。</p>
 <h2 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h2><p>如前所述，本篇论文并没有提出什么开创性的新算法或者新模型，只是一个结合现有方法的缝合怪，但是缝合的极其完美。</p>
 <p>本文的模型的骨干是一个三层GRU的Seq2Seq模型，在这个模型上使用了共用嵌入层、attention机制，另外还有一个作者在论文中称为指示函数（Indicator Function）的机制。</p>
-<img src="/2020/09/21/itag-paper/image-20200921204609788.png" class="" title="This is an image">
+<img src="/2020/09/21/itag-paper/image-20200921204609788.png" class="">
 
 <p>不同于通常的seq2seq模型，本论文的模型除了输出tag概率外，还同时输出注意力权重和指示函数输出的概率值。</p>
 <p>根据论文的描述，这个指示函数指示直接从正文中复制一个单词作为tag的概率。这个指示函数和公共嵌入层共同构成了论文的<strong>内容-标签重叠</strong>机制。但据我观察，这个指示函数在代码中并没有实际使用（具体情况后面具体分析）。</p>
 <h4 id="共用嵌入层"><a href="#共用嵌入层" class="headerlink" title="共用嵌入层"></a>共用嵌入层</h4><p>所谓共用嵌入层是指，文本和TAG都使用一个嵌入层进行嵌入。通过使用共用嵌入层，可以一定程度上实现内容-标签重叠，文本中的单词“java”和tag中的“java”会获得同一个嵌入向量，有利于解码器理解编码器传递过来的信息。</p>
 <p>具体来说，使用共用嵌入层之后，词/tag空间的编号方式如下</p>
-<img src="/2020/09/21/itag-paper/image-20200921203110071.png" class="" title="This is an image">
+<img src="/2020/09/21/itag-paper/image-20200921203110071.png" class="">
 
 <p>其中独立单词是指没有作为tag出现过的单词，公共单词是指既在文本中出现过，又作为tag出现过的单词，独立tag是指只作为tag出现过的单词。</p>
 <p>使用共通嵌入层之后，解码器的行为需要进行一定的调整，解码器的预测宽度=共通单词+独立tag，而非全部单词。因而输出时，需要将softmax的输出映射到这个公共词汇表中。</p>
-<img src="/2020/09/21/itag-paper/image-20200921203428877.png" class="" title="This is an image">
+<img src="/2020/09/21/itag-paper/image-20200921203428877.png" class="">
 
 <p>根据我的测试结果，移除掉这个共通嵌入层之后（改用两个独立的嵌入层），模型性能下降约1~2个百分点。</p>
 <h4 id="Attiention机制"><a href="#Attiention机制" class="headerlink" title="Attiention机制"></a>Attiention机制</h4><p>Seq2Seq模型使用attention机制是常规操作，不对其本身进行过多分析，作者另外强调了一点，结合了attention机制的GRU编码器，能捕捉到的高权重词汇，除了编码文本外，一定程度上还能起到TF-IDF这种主题词模型的作用。</p>
 <p>本论文的创新在于，在这个attention机制上，作者使用了一个直接定向学习权重的方法，来辅助学习attention权重。通过让模型直接输出attention权重，直接对attention权重进行定向学习。这个机制的具体描述如下。</p>
 <p>Attention机制有利于使模型注意到输出序列和输入序列中某些词的对应关系（如图所示）</p>
-<img src="/2020/09/21/itag-paper/image-20200921205329551.png" class="" title="This is an image">
+<img src="/2020/09/21/itag-paper/image-20200921205329551.png" class="">
 
 <p>而在seq2seq的tag推荐任务中，假定输入文本长度为100，目标tag为“python”，输入文本中存在单词“python”，且位置在34时，最完美的注意力系统应该将全部的注意力权重都放在34上。</p>
 <p>而在本论文的模型中，通过事前的数据处理，将解码器的目标attention权重设定为[0,0,…,0,1,0,…,0,0]（其中第34位为1）。</p>
@@ -459,7 +459,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
           <a href="/archives">
-          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-count">10</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -471,7 +471,7 @@
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">11</span>
+        <span class="site-state-item-count">14</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
