@@ -2,9 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://shuiqu.moe/2020/10/04/text-gcn-paper/</loc>
+    
+    <lastmod>2020-10-04T10:47:56.385Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>https://shuiqu.moe/2020/09/26/gcn_rnn_tx/</loc>
+    
+    <lastmod>2020-10-04T10:46:31.771Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>https://shuiqu.moe/2020/09/29/graphsage-paper/</loc>
     
-    <lastmod>2020-09-29T09:05:10.030Z</lastmod>
+    <lastmod>2020-10-04T08:42:56.358Z</lastmod>
     
   </url>
   
@@ -26,13 +40,6 @@
     <loc>https://shuiqu.moe/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/</loc>
     
     <lastmod>2020-09-29T08:52:17.097Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>https://shuiqu.moe/2020/09/26/gcn_rnn_tx/</loc>
-    
-    <lastmod>2020-09-27T03:28:58.744Z</lastmod>
     
   </url>
   

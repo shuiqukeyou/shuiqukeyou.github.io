@@ -47,24 +47,24 @@
   };
 </script>
 
-  <meta name="description" content="itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。 itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了(项目地址)。由于其只是个baseline，外加比较简单，故只进行简单分析。">
+  <meta name="description" content="本文是一篇使用GCN进行文本分类的文章，发表在AAAI 2019上，其主要创新点是提出了一种使用GCN对文本进行编码的方式，可以借鉴到多tag推荐任务上。 和之前的论文阅读博文一样，写的东西会有大量我个人的加工，如果看了之后觉得有点兴趣建议去阅读原文。 （这篇论文在2020年2月左右阅读）">
 <meta property="og:type" content="article">
-<meta property="og:title" content="论文分析&#x2F;实现：Hashtag recommendation with topical attentionbased LSTM">
-<meta property="og:url" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/index.html">
+<meta property="og:title" content="论文阅读：Graph Convolutional Networks for Text Classification">
+<meta property="og:url" content="https://shuiqu.moe/2020/10/04/text-gcn-paper/index.html">
 <meta property="og:site_name" content="ShuiQU">
-<meta property="og:description" content="itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。 itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了(项目地址)。由于其只是个baseline，外加比较简单，故只进行简单分析。">
-<meta property="og:image" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/image-20200921220522529.png">
-<meta property="article:published_time" content="2020-09-21T14:22:16.000Z">
-<meta property="article:modified_time" content="2020-09-21T14:35:07.453Z">
+<meta property="og:description" content="本文是一篇使用GCN进行文本分类的文章，发表在AAAI 2019上，其主要创新点是提出了一种使用GCN对文本进行编码的方式，可以借鉴到多tag推荐任务上。 和之前的论文阅读博文一样，写的东西会有大量我个人的加工，如果看了之后觉得有点兴趣建议去阅读原文。 （这篇论文在2020年2月左右阅读）">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/04/text-gcn-paper/image-20201004183209600.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/04/text-gcn-paper/image-20201004175527055.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/04/text-gcn-paper/image-20201004175755967.png">
+<meta property="article:published_time" content="2020-10-04T08:13:58.000Z">
+<meta property="article:modified_time" content="2020-10-04T10:47:56.385Z">
 <meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="GCN">
 <meta property="article:tag" content="NLP">
-<meta property="article:tag" content="RNN">
-<meta property="article:tag" content="GRU">
-<meta property="article:tag" content="LSTM">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/image-20200921220522529.png">
+<meta name="twitter:image" content="https://shuiqu.moe/2020/10/04/text-gcn-paper/image-20201004183209600.png">
 
-<link rel="canonical" href="https://shuiqu.moe/2020/09/21/TLSTM-paper/">
+<link rel="canonical" href="https://shuiqu.moe/2020/10/04/text-gcn-paper/">
 
 
 <script id="page-configurations">
@@ -76,7 +76,7 @@
   };
 </script>
 
-  <title>论文分析/实现：Hashtag recommendation with topical attentionbased LSTM | ShuiQU</title>
+  <title>论文阅读：Graph Convolutional Networks for Text Classification | ShuiQU</title>
   
 
 
@@ -188,7 +188,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/21/TLSTM-paper/">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/10/04/text-gcn-paper/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -201,7 +201,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          论文分析/实现：Hashtag recommendation with topical attentionbased LSTM
+          论文阅读：Graph Convolutional Networks for Text Classification
         </h2>
 
         <div class="post-meta">
@@ -212,7 +212,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-09-21 22:22:16 / 修改时间：22:35:07" itemprop="dateCreated datePublished" datetime="2020-09-21T22:22:16+08:00">2020-09-21</time>
+              <time title="创建时间：2020-10-04 16:13:58 / 修改时间：18:47:56" itemprop="dateCreated datePublished" datetime="2020-10-04T16:13:58+08:00">2020-10-04</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -227,7 +227,7 @@
             </span>
 
           
-            <span id="/2020/09/21/TLSTM-paper/" class="post-meta-item leancloud_visitors" data-flag-title="论文分析/实现：Hashtag recommendation with topical attentionbased LSTM" title="阅读次数">
+            <span id="/2020/10/04/text-gcn-paper/" class="post-meta-item leancloud_visitors" data-flag-title="论文阅读：Graph Convolutional Networks for Text Classification" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -242,8 +242,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/09/21/TLSTM-paper/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/21/TLSTM-paper/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/10/04/text-gcn-paper/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/04/text-gcn-paper/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -258,19 +258,47 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。</p>
-<p>itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了<a href="https://github.com/shuiqukeyou/tlstm_py3" target="_blank" rel="noopener">(项目地址)</a>。由于其只是个baseline，外加比较简单，故只进行简单分析。</p>
+        <p>本文是一篇使用GCN进行文本分类的文章，发表在AAAI 2019上，其主要创新点是提出了一种使用GCN对文本进行编码的方式，可以借鉴到多tag推荐任务上。</p>
+<p>和之前的论文阅读博文一样，写的东西会有大量我个人的加工，如果看了之后觉得有点兴趣建议去阅读原文。</p>
+<p>（这篇论文在2020年2月左右阅读）</p>
 <a id="more"></a>
 
+<h2 id="背景介绍"><a href="#背景介绍" class="headerlink" title="背景介绍"></a>背景介绍</h2><p>文本分类任务需要通过一定的手段提取出文本的信息，然后使用某个手段利用提取的信息对文本进行分类。</p>
+<p>传统的文本分类使用RNN、CNN等模型进行文本特征提取，复杂一点的再加上attention等机制，再复杂用bert、GPT、ELmo之类的预训练模型进行特征提取。但所有特征提取都是在对单篇文章进行提取。</p>
+<p>而文本间的互动关系隐含着大量的有效信息，例如对于分类任务，同类文本倾向于在某种表征方法下聚集在一起，只要能寻找到合适的表征方式，初始的图结构就能显示出明显的类别倾向（详见GCN的空手道部数据集例子），这是对单篇文章进行特征提取做不到的。实际上，GCN的实验已经表明了，图结构中的节点与邻居的互动关系足以用于表征节点。</p>
+<h2 id="本论文的方法"><a href="#本论文的方法" class="headerlink" title="本论文的方法"></a>本论文的方法</h2><p>如前所述，本文的创新点是提出了一个使用GCN对文本进行建模的方法，如这篇论文自己描述的：</p>
+<blockquote>
+<p>We propose a novel graph neural network method for text classification. To the best of our knowledge, this is the first…</p>
+</blockquote>
+<p>使用GCN对文本建模面临着一个显而易见问题：怎么对文本建模？本文提出了一个使用文档节点和单词节点的<strong>异构图</strong>对文档间进行表征，并将其命名为<strong>text-GCN</strong>。其具体实现如下：</p>
+<h3 id="节点生成算法"><a href="#节点生成算法" class="headerlink" title="节点生成算法"></a>节点生成算法</h3><p>text-GCN的图中一共存在两种节点，单词节点和文档节点，全图的节点总数为：数据集的文档数（文档节点）+数据集的单词数量（单词节点）</p>
+<img src="/2020/10/04/text-gcn-paper/image-20201004183209600.png" class="" title="Text-GCN结构">
 
+<p>(上图白色节点为单词节点，彩色节点为文档节点，不同颜色代表不同的类别)</p>
+<p>文档节点实际上为空节点，单词节点的值为单词对应的词向量，词向量是预训练好的通用词向量。</p>
+<p>文档节点初始化代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">doc_vec = np.array([<span class="number">0.0</span> <span class="keyword">for</span> k <span class="keyword">in</span> range(word_embeddings_dim)])</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
 
-<h2 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h2><p>本论文使用了LDA和LSTM对文本进行建模，然后使用attiention机制结合LDA和LSTM输出的编码向量，最后对编码向量使用softmax进行输出，结构图如下：</p>
-<p>和原模型不同地方在于，我将LSTM单元替换为了GRU，根据论文<a href="https://arxiv.org/pdf/1412.3555v1.pdf" target="_blank" rel="noopener">Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling</a>的结果来看，除非有必要使用LSTM（例如需要使用LSTM单元的记忆门的值），否则使用GRU的结果通常优于LSTM</p>
-<img src="/2020/09/21/TLSTM-paper/image-20200921220522529.png" class="" title="This is an image">
+<p>词节点初始化代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">word_vector_map = loadWord2Vec(word_vector_file)</span><br><span class="line">...</span><br><span class="line"><span class="keyword">for</span> word <span class="keyword">in</span> words:</span><br><span class="line">    <span class="keyword">if</span> word <span class="keyword">in</span> word_vector_map:</span><br><span class="line">        word_vector = word_vector_map[word]</span><br></pre></td></tr></table></figure>
 
-<p>计算流程如下：</p>
-<p>文本分别送入GRU编码器和LDA模型中（LDA模型是提前进行训练好的），然后将LDA的主题向量和编码器输出的时间步序列输入到注意力层中，计算后进行输出，输出层使用softmax函数。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个模型的相当于使用LDA对文本的类型进行了一个预判，预判的类别信息可以改善GRU的模型输出结果。另外，不同于通常的基于RNN的文本分类器/单tag推荐任务（它们通常使用最终的state向量进行softmax计算），由于使用了attention，模型最终用于输出tag的信息是时间步序列，这种情况下模型受梯度爆炸/消失的影响较小。</p>
+<p>每个文档节点只连接到其拥有的单词的单词节点，即任意两篇文档的节点之间不直接相连，而是通过其共用的单词进行连接。</p>
+<p>这种表征方式非常的巧妙，对于NLP任务，如果舍弃掉文本内容只保留文档间互动关系显然会极大的影响模型性能。通过文档间的单词共现进行连接，既表征了文档间的关系，又很程度上的保留了文本的的内容，在第一轮“卷积”过程中，文档节点可以聚合周围的单词节点生成文档向量。</p>
+<p>但这种方法丢失了词频词序等信息，尤其是词序信息被证明对于NLP任务是很重要的，这是text-GCN的一个缺点。</p>
+<h3 id="边生成算法"><a href="#边生成算法" class="headerlink" title="边生成算法"></a>边生成算法</h3><p>除了上文所述的文档-单词边外，text-GCN的图中还存在单词-单词的边，边生成及边权重算法如下：</p>
+<img src="/2020/10/04/text-gcn-paper/image-20201004175527055.png" class="" title="边公式">
+
+<p>其中，Aij是指节点ij间的边A，TF-IDF大家都知道是啥，PMI是指point-wise mutual information算法，一种词关联度的算法，具体实现如下：</p>
+<img src="/2020/10/04/text-gcn-paper/image-20201004175755967.png" class="" title="PMI公式">
+
+<p>其中#W(i)是包含单词i的语料库中的滑动窗口数，＃W(i,j)是包含单词i和j的滑动窗口数，而#W是滑动窗口总数。 PMI值为正表示i和j的语义相关性较高，而PMI值为负表示i和j的语义相关性很小或没有。 本论文仅在具有正PMI值的单词对之间添加边。</p>
+<p>简而言之就是单词和文本之间的关系使用TF-IDF衡量，这一定程度上补偿了丢失的词频信息（词序信息还是没有），而单词和单词间的关系使用PMI衡量，根据这两个算法来生成边和边权重。</p>
+<h2 id="卷积传播算法"><a href="#卷积传播算法" class="headerlink" title="卷积传播算法"></a>卷积传播算法</h2><p>这篇论文的重点不是在卷积传播算法和分类算法，没有在GCN的基础上魔改卷积传播算法，也没有用特殊的分类算法，仅仅只是获取到卷积传播后的文档节点向量后通过softmax进行分类，这里不进行更多的分析。</p>
+<p>不过有一点值得一提，根据论文的描述，在text-GCN这个模型上，2层卷积比1层效果好，但是继续增加层数效果就一般了。</p>
+<p>这个现象也很符合这个模型的设计，如果仅进行一层卷积，那每篇文档仅仅只是获取到了一跳以内的单词信息而已，没有进行所谓的捕捉文档间互动信息，至少需要两层卷积，文档节点间才能完成互动。</p>
+<p>但如果继续增加卷积层数，获取更远的文档信息是没有意义的，同类文档已经在构成图的时候完成一定程度的聚类了，更远处的文档反而相关性更低。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>实验结果照例没有，基本吊打全部基线，值得一提的是这篇论文用了巨量的基线，如果有做文本分类觉得缺基线的可以看看这篇论文的基线。</p>
+<p>本篇论文的创新点就是这个文本图构建方法，通过单词-文档异构图，可以利用GCN生成文档表征，从而执行后续任务。个人认为，相比腾讯那篇用GCN生成新闻评论的论文，这篇的创新性更大，普适性也更大。</p>
 
     </div>
 
@@ -280,10 +308,8 @@
 
       <footer class="post-footer">
           <div class="post-tags">
+              <a href="/tags/GCN/" rel="tag"># GCN</a>
               <a href="/tags/NLP/" rel="tag"># NLP</a>
-              <a href="/tags/RNN/" rel="tag"># RNN</a>
-              <a href="/tags/GRU/" rel="tag"># GRU</a>
-              <a href="/tags/LSTM/" rel="tag"># LSTM</a>
           </div>
 
         
@@ -292,13 +318,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/09/21/itag-review/" rel="prev" title="一年后看ITAG——写在itag源码分析之后">
-      <i class="fa fa-chevron-left"></i> 一年后看ITAG——写在itag源码分析之后
+    <a href="/2020/09/29/graphsage-paper/" rel="prev" title="论文阅读：Inductive Representation Learning on Large Graphs">
+      <i class="fa fa-chevron-left"></i> 论文阅读：Inductive Representation Learning on Large Graphs
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/09/24/lstm%E2%80%94-experiment/" rel="next" title="TLSTM的改良实验">
-      TLSTM的改良实验 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -359,7 +382,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#模型分析"><span class="nav-number">1.</span> <span class="nav-text">模型分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#背景介绍"><span class="nav-number">1.</span> <span class="nav-text">背景介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#本论文的方法"><span class="nav-number">2.</span> <span class="nav-text">本论文的方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#节点生成算法"><span class="nav-number">2.1.</span> <span class="nav-text">节点生成算法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#边生成算法"><span class="nav-number">2.2.</span> <span class="nav-text">边生成算法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#卷积传播算法"><span class="nav-number">3.</span> <span class="nav-text">卷积传播算法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
