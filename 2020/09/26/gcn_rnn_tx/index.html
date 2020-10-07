@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="本论文使用一个GCN-RNN的encoder-decoder模型，通过新闻自动生成新闻评论。 itag的一个问题在于，它只利用到了文档本身的信息，而没有利用到文档之间的关系信息。这段工作的重点是使用GCN改良itag，因为GCN能利用文档间的信息。所以阅读了这篇论文 （这篇论文在2020年2月左右阅读）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文阅读：Coherent Comment Generation for Chinese Articles with a Graph-to-Sequence Model">
+<meta property="og:url" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="本论文使用一个GCN-RNN的encoder-decoder模型，通过新闻自动生成新闻评论。 itag的一个问题在于，它只利用到了文档本身的信息，而没有利用到文档之间的关系信息。这段工作的重点是使用GCN改良itag，因为GCN能利用文档间的信息。所以阅读了这篇论文 （这篇论文在2020年2月左右阅读）">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171521252.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171606111.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171632080.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171644905.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171658969.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171717902.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171726128.png">
+<meta property="og:image" content="c:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171740565.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171740565.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171754629.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171808943.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171915769.png">
+<meta property="og:image" content="c:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171754629.png">
+<meta property="og:image" content="c:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171808943.png">
+<meta property="og:image" content="c:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171915769.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171932122.png">
+<meta property="og:image" content="c:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171932122.png">
+<meta property="article:published_time" content="2020-09-26T09:04:36.000Z">
+<meta property="article:modified_time" content="2020-09-27T03:28:58.744Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="GCN">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="seq2seq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/image-20210102171521252.png">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>论文阅读：Coherent Comment Generation for Chinese Articles with a Graph-to-Sequence Model | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/26/gcn_rnn_tx/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          论文阅读：Coherent Comment Generation for Chinese Articles with a Graph-to-Sequence Model
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-09-26 17:04:36" itemprop="dateCreated datePublished" datetime="2020-09-26T17:04:36+08:00">2020-09-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-27 11:28:58" itemprop="dateModified" datetime="2020-09-27T11:28:58+08:00">2020-09-27</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index">
+                    <span itemprop="name">论文阅读</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/09/26/gcn_rnn_tx/" class="post-meta-item leancloud_visitors" data-flag-title="论文阅读：Coherent Comment Generation for Chinese Articles with a Graph-to-Sequence Model" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/09/26/gcn_rnn_tx/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/26/gcn_rnn_tx/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>本论文使用一个GCN-RNN的encoder-decoder模型，通过新闻自动生成新闻评论。</p>
+<p>itag的一个问题在于，它只利用到了文档本身的信息，而没有利用到文档之间的关系信息。这段工作的重点是使用GCN改良itag，因为GCN能利用文档间的信息。所以阅读了这篇论文</p>
+<p>（这篇论文在2020年2月左右阅读）</p>
+<a id="more"></a>
+
+<h1 id="论文背景"><a href="#论文背景" class="headerlink" title="论文背景"></a>论文背景</h1><p>在传统的基于RNN的encoder-decoder文本生成模型中，对于新闻这种文本内容较长的数据，生成评论的效果较差，基于RNN模型读取到文本后部的时候对于文本前部分的数据实际上已经丢失的差不多了。</p>
+<p>（所以才有transformer这种基于注意力的东西冒出来）</p>
+<h1 id="论文简介"><a href="#论文简介" class="headerlink" title="论文简介"></a>论文简介</h1><p>本论文基于Graph-to-Sequence模型构建了一个新闻评论生成模型，计算步骤如下：</p>
+<ul>
+<li><p>将新闻的标题和新闻内容的各个句子构建成图</p>
+</li>
+<li><p>将每个节点进行编码</p>
+</li>
+<li><p>进行图卷积运算</p>
+</li>
+<li><p>将获得的各个节点的编码序列通过注意力机制转合并成一个序列</p>
+</li>
+<li><p>基于这个序列，使用RNN生成评论</p>
+</li>
+</ul>
+<p>即，将编码-解码器模型的编码器替换成了一个基于图的编码器，解码器部分依然是RNN。</p>
+<p>（本论文的GCN编码器并不是那种捕捉文本间关系的GCN，这个GCN的节点是一篇新闻的标题和它的各个句子，即实质上还是只利用到了文本本身的信息。）</p>
+<p>要实现以上的计算步骤，需要解决的问题有：</p>
+<ul>
+<li><p>怎样将一篇文档构建成图</p>
+</li>
+<li><p>怎样构建节点</p>
+</li>
+<li><p>怎样构建边</p>
+</li>
+<li><p>怎样将构成图的文档进行编码</p>
+</li>
+<li><p>对图进行何种计算</p>
+</li>
+<li><p>如何将全图的节点合并成一个序列送入解码器中计算</p>
+</li>
+</ul>
+<h1 id="模型实现"><a href="#模型实现" class="headerlink" title="模型实现"></a>模型实现</h1><h3 id="编码器（图）构建法："><a href="#编码器（图）构建法：" class="headerlink" title="编码器（图）构建法："></a>编码器（图）构建法：</h3><p><strong>节点构建法</strong></p>
+<p>本篇论文的模型的节点由一篇新闻中的各个句子生成。</p>
+<p>首先对每个句子进行预处理：使用分词工具挑选出每个句子中的命名实体（原数据集为中文），但是仅使用命名实体不足以提取出句子的重点，另外还需要使用textRank这类关键字提取算法提取句子的关键字。</p>
+<p>提取出关键字后，基于关键字将每个句子分配到其对应的关键字下，由于一个句子可能含有多个关键字，故这个步骤允许将一个句子多次分配到不同的关键字下。</p>
+<p>对于标题，因为标题含有的信息密度远大于新闻本身的独立句子，故独立将标题组织成一个标题节点。</p>
+<p>另外有一些不含有任何关键字的句子，将其全部放入到一个特殊的“空”节点下。</p>
+<p>关键词是节点的第一个，然后依次排列每个句子、</p>
+<p><strong>边的构建法：</strong></p>
+<p> 将句子分配完成后，根据每个关键词节点间共享句子的数量生成边，两个关键词节点间有共享的句子则添加一条边，边的权重由共享句子的数量决定。这种边生成的方法度量了两个关键词节点间的相似程度。另外作者也提到可以使用tf-idf来度量节点间的相似性并生成权重。</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171521252.png" class="" title="边的构建法">
+
+
+
+<p><strong>节点的编码：</strong></p>
+<p>NLP任务中，是需要将文本内容进行一定形式的编码的，本文在此处没有使用先将文本编码再构建图的方法，而是在构建完图后再进行文本的编码，即构建图时使用的是原文本。</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171606111.png" class="" title="节点的编码">
+
+<p>为了对节点进行编码，作者使用了一个基于多头自注意力的顶点编码器，顶点编码器由两个部分组成，一个是嵌入模块，另一个是自注意力模块。</p>
+<p>对于单词wi，首先在嵌入表中查找wi的嵌入ei，每个节点的关键词k和句子单词w使用同一个嵌入表。然后为了表征单词的位置，将wi的位置嵌入pi也导入到的嵌入向量中。单词的最终嵌入向量为原始单词嵌入ei和位置嵌入pi的和：</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171632080.png" class="" title="编码计算公式">
+
+<p>单词嵌入和位置嵌入都是可学习向量。</p>
+<p>然后将ϵ送入自注意力模块中，自注意力模块将对单词间的互动进行建模，使得每个隐藏矢量都能够包含顶点的上下文信息。</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171644905.png" class="" title="注意力公式">
+
+<p>对于第一层，Q、K、V都是ϵ，对于之后的层，Q、K、V是上一层的输出，Wo，WQi，WKi，WV i都是可学习的矩阵</p>
+<p><strong>图卷积运算</strong></p>
+<p>编码完成后，在图上执行图卷积操作，输出n个隐藏状态（n=1+1+关键词总数）</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171658969.png" class="" title="图卷积运算">
+
+<p>对图执行两次图卷积操作（论文中未提及卷积次数，但源代码中只叠加了两个GCN层）</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171717902.png" class="" title="图卷积公式">
+
+<p>其中A是每个节点的邻接矩阵（NxN）、IN是单位矩阵（即增加一个自连接）</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171726128.png" class="" title="图卷积公式2">
+
+<p>H是每个节点的编码（NxKl），W是待学习权重（KxKl+1）</p>
+<p>与原版GCN不同之处在于，本论文在输出时使用了类似于图片卷积操作的残差结构，即将每层的激活状态和前一层的激活状态相加后再进行最终输出。作者称这种操作有助于改善模型性能。</p>
+<p><img src="C:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171740565.png" alt="image-20210102171740565"></p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171740565.png" class="" title="输出公式2">
+
+<p>执行最终输出时需要进行非线性变化，Wo为待训练权重矩阵，gout为最终输出</p>
+<p>至此该模型的编码器部分结束，解码器部分是一个使用了注意力机制的RNN</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171754629.png" class="" title="解码器公式1">
+
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171808943.png" class="" title="解码器公式2">
+
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171915769.png" class="" title="解码器公式3">
+
+<p><img src="C:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171754629.png" alt="image-20210102171754629"></p>
+<p><img src="C:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171808943.png" alt="image-20210102171808943"></p>
+<p><img src="C:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171915769.png" alt="image-20210102171915769"></p>
+<p>ti是RNN的输入，t0是START标记，gi是GCN输出的隐藏状态，aj是每个隐藏状态的注意力权重，δ是注意力机制的运算函数，v、w1、w2为待训练参数。</p>
+<p>另外，由于主题词k是文章的重要信息，并且有可能出现在评论里，故本文还使用了一个关键词机制，利用解码隐藏状态ti和上下文向量ci动态计算从主题词复制的概率pcopy，</p>
+<p>解码器的每轮输出最终是从RNN的输出中和每个主题词中挑选。</p>
+<img src="/2020/09/26/gcn_rnn_tx/image-20210102171932122.png" class="" title="关键词机制">
+
+<p><img src="C:%5CUsers%5Cshui%5CDesktop%5Cimage-20210102171932122.png" alt="image-20210102171932122"></p>
+<p>其中Wo，W，Wcopy，b都是待训练参数。</p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>（照例没有试验结果分析，反正结果不好他们也不会发，何况这是篇ACL）</p>
+<p>虽然这篇文章的模型实质上并没有利用GCN提取文档间的互动关系，但其提出了一个有效的利用GCN为文档生成编码的方法法：使用命名实体构建文档图。并且这个方法可以借鉴用于构成文档间互动图。</p>
+<p>另外，本文的文本节点中含有有效的信息，而非使用随机初始化的空节点（GCN原版为随机初始化），这一点也有一定的意义（下篇介绍的Text-GCN就是使用随机初始化来构成初始文本节点）。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/GCN/" rel="tag"># GCN</a>
+              <a href="/tags/NLP/" rel="tag"># NLP</a>
+              <a href="/tags/seq2seq/" rel="tag"># seq2seq</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/09/26/%E5%9C%A8seq2seq%E7%BB%93%E6%9E%84%E4%B8%AD%E6%8F%92%E5%85%A5GCN%E7%9A%84%E4%B8%80%E4%B8%AA%E5%AE%9E%E9%AA%8C/" rel="prev" title="在seq2seq结构中插入GCN的一个实验">
+      <i class="fa fa-chevron-left"></i> 在seq2seq结构中插入GCN的一个实验
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/09/29/%E5%9F%BA%E4%BA%8ELDA%E5%92%8Ctfidf%E7%9A%84%E6%96%87%E6%A1%A3%E5%9B%BE%E7%9A%84%E5%AD%90%E5%9B%BE%E6%B5%8B%E8%AF%95/" rel="next" title="基于LDA和tfidf的文档图的子图测试">
+      基于LDA和tfidf的文档图的子图测试 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#论文背景"><span class="nav-number">1.</span> <span class="nav-text">论文背景</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#论文简介"><span class="nav-number">2.</span> <span class="nav-text">论文简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#模型实现"><span class="nav-number">3.</span> <span class="nav-text">模型实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#编码器（图）构建法："><span class="nav-number">3.0.1.</span> <span class="nav-text">编码器（图）构建法：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">11</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">4</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">14</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
