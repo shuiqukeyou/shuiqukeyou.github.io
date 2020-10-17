@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="目前的NLP任务中，我们对于词汇表的处理通常是直接按词频截断，但这种方法并不一定科学，理论上，词的重要程度应该是遵循某种分布的（自然界的东西大都遵循某种分布），使用变分估计可以估计出样本的分布。本文提出了一个称为变分dropout的方法，使用变分法估计词的重要性分布，并选择性的划分词表，结果表明，相比直接对词表按阈值划分，这种划分方法效果更好。 （这篇论文阅读于2020年5月，GCN的几个方向被否">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文阅读：How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection">
+<meta property="og:url" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="目前的NLP任务中，我们对于词汇表的处理通常是直接按词频截断，但这种方法并不一定科学，理论上，词的重要程度应该是遵循某种分布的（自然界的东西大都遵循某种分布），使用变分估计可以估计出样本的分布。本文提出了一个称为变分dropout的方法，使用变分法估计词的重要性分布，并选择性的划分词表，结果表明，相比直接对词表按阈值划分，这种划分方法效果更好。 （这篇论文阅读于2020年5月，GCN的几个方向被否">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132344342.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132740181.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132811778.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133208711.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133340999.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133401905.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133438215.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134146086.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134118867.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134259938.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134343674.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134428048.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134449870.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134513712.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134552359.png">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134640410.png">
+<meta property="article:published_time" content="2020-10-17T00:47:56.000Z">
+<meta property="article:modified_time" content="2020-10-17T01:42:52.786Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="word embedding">
+<meta property="article:tag" content="variational inference">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132344342.png">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>论文阅读：How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          论文阅读：How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-10-17 08:47:56 / 修改时间：09:42:52" itemprop="dateCreated datePublished" datetime="2020-10-17T08:47:56+08:00">2020-10-17</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index">
+                    <span itemprop="name">论文阅读</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/" class="post-meta-item leancloud_visitors" data-flag-title="论文阅读：How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>目前的NLP任务中，我们对于词汇表的处理通常是直接按词频截断，但这种方法并不一定科学，理论上，词的重要程度应该是遵循某种分布的（自然界的东西大都遵循某种分布），使用变分估计可以估计出样本的分布。本文提出了一个称为变分dropout的方法，使用变分法估计词的重要性分布，并选择性的划分词表，结果表明，相比直接对词表按阈值划分，这种划分方法效果更好。</p>
+<p>（这篇论文阅读于2020年5月，GCN的几个方向被否后，导师让我自己找别的方向，因为疫情的原因并没有开学，所以只能在家自己摸索一下，我看了一下倒腾了一下这篇论文。本论文发表于ACL 2019）</p>
+<a id="more"></a>
+
+<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>目前的NLP任务中，我们对于词汇表的处理通常是直接按词频截断，但这种方法并不一定科学，有些高频词可能并不重要（即使是去掉停用词后），而有些低频词可能很重要。而且，截断词汇表的词频阈值往往也依赖于编程者的项目经验，我们并不知道何种频率最好。</p>
+<p>根据本文的统计，在一个简单的基于CNN的文本分类模型中，嵌入层的参数占了模型的大部分参数, 这可能成为许多模型在实际应用中的阻碍，尤其是在一些低算力场景下。</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132344342.png" class="" title="参数的数量">
+
+<p>其中：#Emb是单词嵌入矩阵中的参数数量（256维），#CNN是CNN模型中的参数数量。</p>
+<p>为了减轻这种冗余问题并使嵌入矩阵尽可能高效，本文期望寻找出一个最小化嵌入矩阵，使得在使用尽量少的词汇的情况下，和保留了完成词汇的嵌入矩阵有基本相似的性能。</p>
+<p>本文提出了两个问题：</p>
+<ul>
+<li>词汇选择算法在文本分类中起到什么程度的作用？</li>
+<li>如何在保持准确性的同时大幅减少词汇量？</li>
+</ul>
+<p>简单的说，词汇选择就是对总词汇库进行采样，本文探究的是如何采样才能尽量少单词同时保留尽量多的语义。</p>
+<p>变分估计法可以估计出某组数据的分布，根据估计出的分布，对词表进行有选择性的提取，可以提升模型的性能。</p>
+<p>（由于我没弄懂变分估计法，所以就不再继续介绍变分法）</p>
+<p>本文的贡献如下：</p>
+<ul>
+<li>本文正式定义了词汇选择问题，展示了其重要性，并针对文本分类任务中的词汇选择提出了新的评估指标。</li>
+<li>提出了一种新的基于变分采样的词汇选择算法，该算法通过在贝叶斯推理框架下重新构造文本分类来实现。</li>
+<li>进行了全面的实验，以证明所提出的词汇选择算法在许多强基准上的优越性。</li>
+</ul>
+<h2 id="关于词汇选择的重要性"><a href="#关于词汇选择的重要性" class="headerlink" title="关于词汇选择的重要性"></a>关于词汇选择的重要性</h2><p>在给定总计为V的词汇的情况下，存在一定的算法可以从完整词汇V中选择不同的词汇子集                                。但列举所有的采样的可能性是不可能的。</p>
+<p>本文设计了一种蒙特卡洛模拟策略，以近似估计可能的选择算法A所达到的给定词汇量的准确性的下界和上限，通过运行N次来模拟可能的选择算法。</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132740181.png" class="" title="词汇选择的重要性">
+
+<p>结果显示，在较低的词汇量下的精度的波动范围非常大，当采样的词汇量增加时，差距逐渐缩小。这样的蒙特卡洛模拟研究证明了词汇选择策略在NLP任务中的重要性。 </p>
+<h2 id="评估指标"><a href="#评估指标" class="headerlink" title="评估指标"></a>评估指标</h2><p>作者使用了两种指标：曲线下面积（AUC）和Vocab @ -X％</p>
+<p>AUC测量全局性能。AUC通过曲线计算封闭区域，从而概述了词汇选择算法的性能。这里的AUC的横坐标是词汇量，纵坐标是准确度。</p>
+<p>Vocab @ -X％局部词汇选择性能。Vocab @ -X％指的是，当允许X％性能下降时，则Vocab @ -X％计算所需的最小词汇量</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415132811778.png" class="" title="评估方法">
+
+<p>文章任务发现直接计算AUC过于强调大词汇量区域，因此无法代表算法在低词汇量条件下的选择能力。因此，本文采用词汇量的对数建立坐标系，再计算AUC。</p>
+<h2 id="词汇选择方法"><a href="#词汇选择方法" class="headerlink" title="词汇选择方法"></a>词汇选择方法</h2><p>作者从dropout的思想提出了单词级dropout。作者假设每个单词wi有一个与其特征相关dropout率pi，代表其被空的占位符替换的可能性，具体来说，dropout率越高，表示从词汇表中删除它所造成的损失就越少。</p>
+<p>则原始优化问题可以认为是推导潜在的dropout概率向量p = [p1，…，pV]。</p>
+<p>作者一共提出了两种dropout方法：伯努利dropout、高斯dropout。</p>
+<p>作者只使用这两种方法的原因应该是，提出变分编码的论文《Auto-Encoding Variational Bayes》中就只使用了伯努利dropout和高斯dropout，本文的大部分思路来自于这篇论文。</p>
+<p>另外根据苏剑林的博客中关于《Auto-Encoding Variational Bayes》的分析中提到：</p>
+<blockquote>
+<p>使用变分法，需要构造一个分布，而不是任意一个函数，既然是分布就得满足归一化的要求，而要满足归一化，并且要容易计算，就没有多少选择了。</p>
+</blockquote>
+<h3 id="伯努利dropout"><a href="#伯努利dropout" class="headerlink" title="伯努利dropout"></a>伯努利dropout</h3><p>将给定的单词x投影到向量空间  中，然后将随机的dropout噪声添加到嵌入输入中以模拟dropout过程，如下所示：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133208711.png" class="">
+
+<p>OneHot是将单词x转换为one-hot形式的函数，OneHot（x）∈R(V)，而b∈R(V)是bi〜Bern（1- pi）的伯努利dropout噪声。本公式指的是：在进行伯努利抽样的向量b下，使用给定的嵌入矩阵W计算嵌入输出向量E(x|b)。</p>
+<p>为了在给出训练对（x = x1…xn，y）作为证据的贝叶斯框架，下推断带有参数p的潜在伯努利分布，首先将目标函数定义为</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133340999.png" class="">
+
+<p>（L是证据下限(ELBO)函数），然后按如下方式推导其下界：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133401905.png" class="">
+
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415133438215.png" class="">
+
+<p>其中P(b)是先验分布，而</p>
+
+
+<p>表示参数为p的伯努利近似后验。KL是指K-L散度(Kullback-Leibler Divergence)，是一种量化两种概率分布P和Q之间差异的方式，又叫相对熵。</p>
+<p>整个优化目标是：寻找一组参数使得先验分布和近似后验尽量的接近。即，使得</p>
+
+
+<p>尽量的小，也就是使得ELOB函数的值尽量的大。</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134146086.png" class="">
+
+<p>Q(x)为要近似的分布，P(x|D)为参数x的条件概率分布, lnP(D)为log似然，L为log似然的下界。</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134118867.png" class="">
+
+<h3 id="高斯dropout"><a href="#高斯dropout" class="headerlink" title="高斯dropout"></a>高斯dropout</h3><p>由于伯努利分布是一个二元分布，故通过伯努利分布进行计算时需要对样本进行采样，作者的说法是，计算一次随机dropout向量b的期望需要使用2 V个不同的值来计算。因而作者使用连续高斯进行近似，这个方法是《Auto-Encoding Variational Bayes》中提出的。</p>
+<p>和伯努利dropout类似，假设模拟计算过程如下：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134259938.png" class="">
+
+<p>其中z∈R V遵循高斯分布(正态分布)：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134343674.png" class="">
+
+<p>将b合并到W中，即将b当成嵌入权重B本身的内在随机特性，此时：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134428048.png" class="">
+
+<p>其中</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134449870.png" class="">
+
+<p>且遵循多元高斯分布：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134513712.png" class="">
+
+<p>下界推导过程和伯努利dropout类似：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134552359.png" class="">
+
+<h3 id="词汇选择"><a href="#词汇选择" class="headerlink" title="词汇选择"></a>词汇选择</h3><p>经过学习优化，可以获得与每个单词wi相关的dropout率αi。本文使用了阈值αT来根据dropout率选择词汇子集。因此，剩余的词汇子集描述如下：</p>
+<img src="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/image-20210415134640410.png" class="">
+
+<p>通过调整αT，可以控制所选词汇表的大小。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>我实际上没有跑通这个东西（python2+tensorflow0.X的祖传代码，甚至不是1.X的版本），只是捋清了项目的代码主干，然后搬到了itag中试了一下。但这个在上古代码里掏方法到新框架里的体验让我学到了很多。</p>
+<p>就结果来说是有提升的（这个方法放在任何NLP任务中应该都有所提升），但是我的导师表示这个的创新性更加不足，往itag上套个变分纯粹只是为了提高而提高，没有任何可以用来写论文的点，最后这个方向也停了。</p>
+<p>这轮实验之后，我完全放弃了文本的标签推荐方向，转而开始做跨语言信息检索方向。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/NLP/" rel="tag"># NLP</a>
+              <a href="/tags/word-embedding/" rel="tag"># word embedding</a>
+              <a href="/tags/variational-inference/" rel="tag"># variational inference</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/17/python%E7%9A%84list%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/" rel="prev" title="python的list的底层实现">
+      <i class="fa fa-chevron-left"></i> python的list的底层实现
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-number">1.</span> <span class="nav-text">简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关于词汇选择的重要性"><span class="nav-number">2.</span> <span class="nav-text">关于词汇选择的重要性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#评估指标"><span class="nav-number">3.</span> <span class="nav-text">评估指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#词汇选择方法"><span class="nav-number">4.</span> <span class="nav-text">词汇选择方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#伯努利dropout"><span class="nav-number">4.1.</span> <span class="nav-text">伯努利dropout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#高斯dropout"><span class="nav-number">4.2.</span> <span class="nav-text">高斯dropout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#词汇选择"><span class="nav-number">4.3.</span> <span class="nav-text">词汇选择</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="seq2seq模型的decoder的起始输入总是&lt;START&gt;标记，这个标记仅用于启动decoder的循环输入输出，而没有提供任何其他的有效信息，理论上，如果能通过&lt;START&gt;向decoder提供某些信息，那么理论上应该可以改善seq2seq的性能，这个实验基于这个假设展开。 （本实验进行于2020年4月。顺便这个实验也被否了）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="实验：预分类对于seq2seq模型的影响">
+<meta property="og:url" content="https://shuiqu.moe/2020/10/12/exp-pre-class/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="seq2seq模型的decoder的起始输入总是&lt;START&gt;标记，这个标记仅用于启动decoder的循环输入输出，而没有提供任何其他的有效信息，理论上，如果能通过&lt;START&gt;向decoder提供某些信息，那么理论上应该可以改善seq2seq的性能，这个实验基于这个假设展开。 （本实验进行于2020年4月。顺便这个实验也被否了）">
+<meta property="og:image" content="https://shuiqu.moe/2020/10/12/exp-pre-class/v2-ba241fdc7ab89be9f7fbd17c6dba1406_r.jpg">
+<meta property="article:published_time" content="2020-10-12T06:50:51.000Z">
+<meta property="article:modified_time" content="2020-10-12T06:54:16.498Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="seq2seq">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://shuiqu.moe/2020/10/12/exp-pre-class/v2-ba241fdc7ab89be9f7fbd17c6dba1406_r.jpg">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/10/12/exp-pre-class/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>实验：预分类对于seq2seq模型的影响 | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/10/12/exp-pre-class/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          实验：预分类对于seq2seq模型的影响
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-10-12 14:50:51 / 修改时间：14:54:16" itemprop="dateCreated datePublished" datetime="2020-10-12T14:50:51+08:00">2020-10-12</time>
+            </span>
+
+          
+            <span id="/2020/10/12/exp-pre-class/" class="post-meta-item leancloud_visitors" data-flag-title="实验：预分类对于seq2seq模型的影响" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/10/12/exp-pre-class/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/12/exp-pre-class/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>seq2seq模型的decoder的起始输入总是&lt;START&gt;标记，这个标记仅用于启动decoder的循环输入输出，而没有提供任何其他的有效信息，理论上，如果能通过&lt;START&gt;向decoder提供某些信息，那么理论上应该可以改善seq2seq的性能，这个实验基于这个假设展开。</p>
+<p>（本实验进行于2020年4月。顺便这个实验也被否了）</p>
+<a id="more"></a>
+
+<h2 id="思路介绍"><a href="#思路介绍" class="headerlink" title="思路介绍"></a>思路介绍</h2><p>多标签推荐的一个难点在于，它的输出空间规模是指数增长的。</p>
+<p>而文本标签推荐是有大致的分类倾向的，例如：如果一篇文档有tensorflow的tag，那它很可能也有python的标签，而spring显然不大可能和python同时出现，如果能向decoder提供文档的大致的分类，则可以极大的减小输出的空间的规模。</p>
+<p>这个想法是在做GCN时冒出来的，根据GCN的描述，如果构建图的方式合适，在图被创建出来的时候就已经有了大致的分类：</p>
+<img src="/2020/10/12/exp-pre-class/v2-ba241fdc7ab89be9f7fbd17c6dba1406_r.jpg" class="" title="边的构建法">
+
+<p>主要思路已经在上面的摘要里写了，对于seq2seq模型，如果通过&lt;START&gt;标记向第一个RNN单元提供一些关于文档的大致分类的数据，理论上应该对模型有所帮助。</p>
+<p>假设一个极端情况：对于一个有100个tag的多tag推荐任务，创建100个不同的&lt;START&gt;标记，对第一个RNN单元，总是直接输入其正确输出对应的&lt;START&gt;标记，这实际上是等于直接告诉模型第一个tag是什么，这种情况下第一个标签的准确率和召回很容易接近100%，从而使得后续的其他标签的预测效果也获得提升。</p>
+<h2 id="模型介绍"><a href="#模型介绍" class="headerlink" title="模型介绍"></a>模型介绍</h2><p>模型使用原版的itag，不对其进行修改，但是使用别的模型/方法将数据集预先分类为N个类别，然后设定N个不同&lt;START&gt;标记，用于提示decoder。</p>
+<h2 id="预分类实现"><a href="#预分类实现" class="headerlink" title="预分类实现"></a>预分类实现</h2><p>前文提到了GCN可以用于生成文档的大致分类，但是实际上我并没有用GCN做这个预分类，因为GCN是有监督或半监督的，等于我需要预先知道文章的大致分类，但是我并不知道（我知道了我还要GCN干啥？）。</p>
+<p>因为我所使用的数据集根本就没有预分类类别这项属性，所以我无法使用监督/半监督类的算法，这时候我有两个选择：</p>
+<ul>
+<li>给数据集加上预分类类别<ul>
+<li>换数据集</li>
+<li>人工标注</li>
+</ul>
+</li>
+<li>无监督学习</li>
+</ul>
+<p>由于当时是在快速验证想法，所以只使用了ask ubuntu论坛的提问数据集。</p>
+<h3 id="换数据集"><a href="#换数据集" class="headerlink" title="换数据集"></a>换数据集</h3><p>换数据集是一个正常的思路，因为我的目的不是业务（一定要拿这个数据集做），而是研究，所以我可以去找合适的数据集，当时我的想法是，使用reddit、quora等本身就带有“预分类”属性的数据集，例如reddit本身就分为各种不同的板块，我可以将不同的板块作为预分类标签。</p>
+<p>但是众所周知，找数据集是个挺麻烦的事，我当时打算先检验一下这个想法可不可行，所以用了后面的两种方法。</p>
+<h3 id="人工标注"><a href="#人工标注" class="headerlink" title="人工标注"></a>人工标注</h3><p>这个选项的问题在于，多tag文档压根没法人工标记大类别数据，于是我使用了粗糙的人工分类来对这个想法进行定性。</p>
+<p>针对ask ubuntu论坛的数据集，我按出现频率挑选了约前60个tag，并根据个人知识对其进行了分类，大概80%的文档都至少有一个这些tag。</p>
+<p>预分类时检测到一篇文本有一个tag属于这60个时，即将这篇文档指定为该tag所属的类别，并且不再进行判定，即，暂不考虑文档属于多类别时的分类问题。</p>
+<p>如果没有任何一个tag属于这60个，则将这篇文档指定为other类，</p>
+<p><strong>使用的预分类方案：</strong></p>
+<ul>
+<li>硬件 ‘networking’, ‘drivers’, ‘wireless’, ‘usb’, ‘sound’, ‘keyboard’, ‘hard-drive’,’uefi’, ‘boot’, ‘dual-boot’, ‘mouse’, ‘printing’, ‘display’, ‘touchpad’, ‘bluetooth’, ‘dell’, ‘ati’, ‘graphics’ ‘video’, </li>
+<li>软件 ‘virtualbox’, ‘shortcut-keys’, ‘nautilus’, ‘xorg’, ‘firefox’, ‘wine’, ‘google-chrome’, ‘software-center’, ‘pulseaudio’, ‘software-installation’, ‘upgrade’, ‘installation’, ‘updates’,’kde’</li>
+<li>系统 ‘server’, ‘grub2’, ‘system-installation’, ‘kernel’, ‘permissions’, ‘login’, ‘network-manager’, ‘suspend’, ‘launcher’, ‘password’, ‘filesystem’, ‘files’, ‘icons’</li>
+<li>操作 ‘command-line’, ‘apt’, ‘bash, ‘package-management’ ‘mount’, ‘scripts’, ‘ssh’, ‘dpkg’, ‘software-recommendation’, ‘sudo’, </li>
+<li>其他系统： ‘xubuntu’， ‘windows’， ‘lubuntu’, ‘kubuntu’, ‘ubuntu-touch’, ‘windows-7’, ‘live-usb’, ‘samba’</li>
+<li>代码:’python’, ‘apache2’, ‘java’, ‘mysql’, ‘php’</li>
+</ul>
+<p>另外还有一个other类别，共7类</p>
+<p>这种粗糙的人工预分类，既影响模型的迁移能力（模型依赖于人工预分类的效果），也无法捕捉到真实的tag聚类，例如中间的<strong>其他系统</strong>类别，这几个tag可能完全不会同时出现，但是我却将其分为一类，这种情况下预分类反而是有害的。</p>
+<h3 id="无监督学习"><a href="#无监督学习" class="headerlink" title="无监督学习"></a>无监督学习</h3><p>说到无监督分类，那就是聚类，我查找了容易实现的图无监督方法，最后使用了谱聚类方法（这是一个非常老的方法，而且按我导师的说法，用谱聚类做tag推荐没有任何文献支撑）</p>
+<p>然后我仿照了Text-GCN的方法构建了图，没有使用文档节点，仅使用了tag节点，因为tag推荐任务本质上是推荐tag，对于tag进行大类别分类更加贴近任务。</p>
+<p>我使用了两种图构建方法，分别是相似度法和词对法。</p>
+<ul>
+<li>相似度法：利用预训练的word2vec将tag转换为词向量，根据词向量的相似度构建tag互动图</li>
+<li>词对法：检测所有文章的tag，如果两个tag同时属于一篇文章，则将这两个tag间的权重+1</li>
+</ul>
+<p>词对法会导致高频tag的权重极大，因而还进行了权重对数化和归一化。</p>
+<p>谱聚类使用了7个和10个类别。</p>
+<h2 id="实验结果"><a href="#实验结果" class="headerlink" title="实验结果"></a>实验结果</h2><p>获得每个tag的分类结果后，再读取每篇文档的第一个tag的分类作为文本的分类，然后使用预分类结果运行itag。结果如下：</p>
+<table>
+<thead>
+<tr>
+<th align="center"></th>
+<th>精确</th>
+<th>召回</th>
+<th>F1</th>
+<th>全命中</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Itag</td>
+<td>0.326030</td>
+<td>0.391759</td>
+<td>0.355885</td>
+<td>0.004979</td>
+</tr>
+<tr>
+<td align="center">人工设计/7类别</td>
+<td>0.327306</td>
+<td>0.392381</td>
+<td>0.356902</td>
+<td>0.005477</td>
+</tr>
+<tr>
+<td align="center">词对/谱聚类，7类别</td>
+<td>0.340205</td>
+<td>0.409898</td>
+<td>0.371814</td>
+<td><strong>0.008713</strong></td>
+</tr>
+<tr>
+<td align="center">相似度/谱聚类，7类别</td>
+<td>0.326591</td>
+<td>0.391953</td>
+<td>0.356299</td>
+<td>0.007002</td>
+</tr>
+<tr>
+<td align="center">词对/谱聚类，10类别</td>
+<td><strong>0.345573</strong></td>
+<td><strong>0.416317</strong></td>
+<td><strong>0.377661</strong></td>
+<td>0.006691</td>
+</tr>
+<tr>
+<td align="center">相似度/谱聚类，10类别</td>
+<td>0.340439</td>
+<td>0.410417</td>
+<td>0.372167</td>
+<td>0.007780</td>
+</tr>
+</tbody></table>
+<p>（全命中指模型预测出所有tag且没有多预测）</p>
+<p>结果分析：</p>
+<ul>
+<li>通过&lt;START&gt;标记为decoder提供信息是有效的，无论是粗糙的人工分类还是无监督分类，相比itag都有所提升，尤其是谱聚类方法，提升更加明显。</li>
+<li>粗糙的人工分类效果远不如无监督分类，因为人工分类过于依赖于人类的经验。</li>
+<li>相比使用词向量相似度，使用词对共现次数建图的效果更好，因为预训练的词向量并不能很好反应tag的语义（一个词出现在文本中和tag中的语义是不一样的），而基于文档的共现次数则效果更好。</li>
+<li>提升预分类的类比数量可以提升预分类的效果，理论上预分类数量越多，向decoder提示的数据就越多，考虑前文假设的极端情况，如果使用的预分类数量和tag数一致，等于是向decoder直接告知了第一个tag是什么，显然效果会很好，但是这样就失去了这个算法的意义。</li>
+</ul>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a>结论</h2><p>对文本进行预分类，然后通过&lt;START&gt;标记向decoder提示信息是有效的，如果继续做下去的话，就是寻找更高效的聚类方法，或者是用有预分类属性的数据集，再研究有监督的预分类。</p>
+<p>但这个方向最后没有做下去，我的导师认为我使用的聚类方法没有文献支撑，并且这个方法创新性也有限，只是改了一下&lt;START&gt;标记，所以让我不要继续做这个方向了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/NLP/" rel="tag"># NLP</a>
+              <a href="/tags/seq2seq/" rel="tag"># seq2seq</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/12/exp-gcn-gru/" rel="prev" title="实验：基于GCN的多标签推荐模型">
+      <i class="fa fa-chevron-left"></i> 实验：基于GCN的多标签推荐模型
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/10/17/python%E7%9A%84list%E7%9A%84%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/" rel="next" title="python的list的底层实现">
+      python的list的底层实现 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#思路介绍"><span class="nav-number">1.</span> <span class="nav-text">思路介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#模型介绍"><span class="nav-number">2.</span> <span class="nav-text">模型介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#预分类实现"><span class="nav-number">3.</span> <span class="nav-text">预分类实现</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#换数据集"><span class="nav-number">3.1.</span> <span class="nav-text">换数据集</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#人工标注"><span class="nav-number">3.2.</span> <span class="nav-text">人工标注</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#无监督学习"><span class="nav-number">3.3.</span> <span class="nav-text">无监督学习</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验结果"><span class="nav-number">4.</span> <span class="nav-text">实验结果</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论"><span class="nav-number">5.</span> <span class="nav-text">结论</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
