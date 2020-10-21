@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码实现，我有一篇关于这个论文的介绍，这里介绍它的具体实现。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码分析">
+<meta property="og:url" content="https://shuiqu.moe/2020/10/21/code-Variational-Approach-to-Vocabulary-Selection/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码实现，我有一篇关于这个论文的介绍，这里介绍它的具体实现。">
+<meta property="article:published_time" content="2020-10-21T10:57:00.000Z">
+<meta property="article:modified_time" content="2020-10-21T11:06:39.960Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="word embedding">
+<meta property="article:tag" content="variational inference">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/10/21/code-Variational-Approach-to-Vocabulary-Selection/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码分析 | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/10/21/code-Variational-Approach-to-Vocabulary-Selection/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码分析
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-10-21 18:57:00 / 修改时间：19:06:39" itemprop="dateCreated datePublished" datetime="2020-10-21T18:57:00+08:00">2020-10-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E4%BB%A3%E7%A0%81%E5%88%86%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">代码分析</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/10/21/code-Variational-Approach-to-Vocabulary-Selection/" class="post-meta-item leancloud_visitors" data-flag-title="论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码分析" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/10/21/code-Variational-Approach-to-Vocabulary-Selection/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/21/code-Variational-Approach-to-Vocabulary-Selection/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码实现，我有一篇关于这个论文的<a href="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/">介绍</a>，这里介绍它的具体实现。</p>
+<a id="more"></a>
+
+<h2 id="引入及简介"><a href="#引入及简介" class="headerlink" title="引入及简介"></a>引入及简介</h2><p>论文How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection的代码实现，我有一篇关于这个论文的<a href="https://shuiqu.moe/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/">介绍</a>，这里介绍它的具体实现。</p>
+<p>这项目的代码实现给我看麻了，肯定是那种大组的祖传代码，2019年的论文，用的是python2+tensorflow0.X（甚至不是1.X），一堆上古写法，看一点就得谷歌一会儿。</p>
+<p>当然，好过那种不给代码的。由于实际上我没弄懂变分估计，我只是按照它的代码把整个计算逻辑搬过去了而已。</p>
+<p>（本工作进行于2020年5月）</p>
+<p>通过变分法估计词的重要性分布需要在具体的任务中进行，在不同的任务下，单词的重要性分布可能会发生变化。因此本项目算是个多任务学习模型，损失由主任务损失和变分词嵌入模型损失组成。</p>
+<h2 id="核心模型"><a href="#核心模型" class="headerlink" title="核心模型"></a>核心模型</h2><p>这篇论文的核心是带变分估计的词嵌入，故其核心代码是项目中的VarDropoutEmbedding类，但是可能是因为祖传代码，这个项目的解耦做的很屑，除了VarDropoutEmbedding类，还有许多机制放在了主model中，甚至还有许多机制放在了训练的外围代码中。</p>
+<p>VarDropoutEmbedding的初始化代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, input_size, layer_size, batch_size, name=<span class="string">"embedding"</span>)</span>:</span></span><br><span class="line">    self.name = name</span><br><span class="line">    self.input_size = input_size</span><br><span class="line">    self.layer_size = layer_size</span><br><span class="line">    self.batch_size = batch_size</span><br><span class="line">    self.logdropout_init = tf.random_uniform_initializer(<span class="number">0</span>, <span class="number">3</span>)</span><br><span class="line">    <span class="comment"># 全词汇的嵌入矩阵</span></span><br><span class="line">    self.embedding_mean = tf.get_variable(name, [self.input_size, self.layer_size])</span><br><span class="line">    <span class="comment"># 词的dropout值</span></span><br><span class="line">    self.embedding_logdropout_ratio = tf.get_variable(name + <span class="string">"_ratio"</span>, [self.input_size, <span class="number">1</span>], initializer=self.logdropout_init)</span><br><span class="line">    self.eps = tf.random_normal([self.batch_size, <span class="number">1</span>, self.layer_size], <span class="number">0.0</span>, <span class="number">1.0</span>)</span><br></pre></td></tr></table></figure>
+
+<p>由代码可知，模型为所有的词创建了词嵌入矩阵，即嵌入模型训练时用到了整个语料库的所有的词，因为你并不能预先假设哪些词没有用（可以进行一定的预先切割）。</p>
+<p>并按词的数量创建了一个dropout向量，每个词的dropout值在0~3间随机生成</p>
+<p>VarDropoutEmbedding的调用化代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self, input_data, sample=False, mask=None)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> sample:</span><br><span class="line">        output_mean = tf.nn.embedding_lookup(self.embedding_mean, input_data)</span><br><span class="line">        output_logdropout = tf.nn.embedding_lookup(self.clip(self.embedding_logdropout_ratio), input_data)</span><br><span class="line">        output_std = tf.exp(<span class="number">0.5</span> * output_logdropout) * output_mean</span><br><span class="line">        output = output_mean + output_std * self.eps</span><br><span class="line">    <span class="keyword">elif</span> mask <span class="keyword">is</span> <span class="literal">None</span>:</span><br><span class="line">        output = tf.nn.embedding_lookup(self.clip(self.embedding_mean), input_data)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        output = tf.nn.embedding_lookup(mask * self.clip(self.embedding_mean), input_data)</span><br><span class="line">    <span class="keyword">return</span> output</span><br></pre></td></tr></table></figure>
+
+<p>当调用嵌入层时，如果是使用采样模式（由sample标记控制），就使用完整的词向量矩阵，查询每个词的向量和每个词的dropout值，并进行一定的转换（应该是变分的机制）。</p>
+<p>如果不是采样模式，且没有通过外部传入mask的话，则直接查询嵌入；如果外部传入了mask，则用外部传入的mask（这条主要在验证和测试时使用）。</p>
+<p>其中self.clip()是将dropout值限制到-10到10之间的一个内部方法。</p>
+<h2 id="代码纠缠处其之一"><a href="#代码纠缠处其之一" class="headerlink" title="代码纠缠处其之一"></a>代码纠缠处其之一</h2><p>上面说到，本模型的损失由主任务模型和变分模型损失组成，变分估计是推断未知数据的概率分布，而衡量两个概率分布之间的差一半用KL散度，这个项目把KL散度的计算的<strong>一部分</strong>放在了VarDropoutEmbedding层中：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">regularizer</span><span class="params">(self)</span>:</span></span><br><span class="line">    k1, k2, k3 = <span class="number">0.63576</span>, <span class="number">1.8732</span>, <span class="number">1.48695</span></span><br><span class="line">    log_alpha = self.clip(self.embedding_logdropout_ratio)  <span class="comment"># [all_word, 1]</span></span><br><span class="line">    KLD = -tf.reduce_sum(k1 * tf.sigmoid(k2 + k3 * log_alpha) - <span class="number">0.5</span> * tf.nn.softplus(-log_alpha) - k1)</span><br><span class="line">    <span class="keyword">return</span> KLD</span><br></pre></td></tr></table></figure>
+
+<p>注意，只是一部分，因为这里算出来的这个KL散度并不能直接用，在主模型中还需要处理这个KL散度。</p>
+<h2 id="主模型"><a href="#主模型" class="headerlink" title="主模型"></a>主模型</h2><p>主模型中涉及变分嵌入模型的代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line"><span class="comment"># 创建变分嵌入模型</span></span><br><span class="line">self.embedding = VarDropoutEmbedding(vocabulary_size, emb_size, batch_size)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取变分嵌入层中的mask</span></span><br><span class="line"><span class="keyword">if</span> variational:</span><br><span class="line">    self.mask = tf.cast(tf.less(self.embedding.embedding_logdropout_ratio, self.threshold), tf.float32)</span><br><span class="line">    self.sparsity = tf.nn.zero_fraction(self.mask)</span><br><span class="line">...</span><br><span class="line">self.weight_decay = tf.placeholder(tf.float32, shape=(), name=<span class="string">"weight_decay"</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查找input的词嵌入</span></span><br><span class="line"><span class="keyword">if</span> variational:</span><br><span class="line">    <span class="keyword">if</span> is_training:</span><br><span class="line">        self.x_emb = tf.expand_dims(self.embedding(self.x, sample=<span class="literal">True</span>, mask=<span class="literal">None</span>), <span class="number">-1</span>)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        self.x_emb = tf.expand_dims(self.embedding(self.x, sample=<span class="literal">False</span>, mask=self.mask), <span class="number">-1</span>)</span><br><span class="line">        self.embedding_matrix = self.embedding.zeroed_embedding(self.mask)</span><br><span class="line">...</span><br><span class="line"><span class="comment"># 计算变分损失（权重递减）</span></span><br><span class="line"><span class="keyword">if</span> variational:</span><br><span class="line">    self.reg_loss = self.weight_decay * self.embedding.regularizer()</span><br><span class="line"><span class="keyword">else</span>:</span><br><span class="line">    self.reg_loss = tf.constant(<span class="number">0.</span>, dtype=tf.float32)</span><br><span class="line">...</span><br><span class="line"><span class="comment"># 主任务代码</span></span><br><span class="line">...</span><br><span class="line"><span class="comment"># 计算总损失</span></span><br><span class="line"><span class="keyword">if</span> is_training:</span><br><span class="line">    <span class="keyword">with</span> tf.name_scope(<span class="string">"loss"</span>):</span><br><span class="line">        self.cross_entropy = tf.reduce_mean(</span><br><span class="line">            tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.y))</span><br><span class="line">        self.loss = self.cross_entropy + self.reg_loss</span><br><span class="line">        self.optimizer = tf.compat.v1.train.AdamOptimizer(self.learning_rate).minimize(self.loss, global_step=self.global_step, var_list=trainables)</span><br></pre></td></tr></table></figure>
+
+<p>主模型会将外部传入的threshold值送入到变分嵌入层，并获得mask矩阵。KL散度将会在主模型内通过weight_decay进行权重递减。获得主任务的输出后将会计算主任务的损失，并将两个损失相加。</p>
+<p>按我的习惯，这个损失要么在变分嵌入层内完成，不要暴露到外面来，事实上这个reg_loss的计算与主模型无关。</p>
+<p>要么就把所有损失都放在最外层的外围代码中，不要在模型内部写损失计算逻辑，不利于解耦。</p>
+<p>这是我觉的第二个纠结的地方。</p>
+<h2 id="外围代码"><a href="#外围代码" class="headerlink" title="外围代码"></a>外围代码</h2><p>前面的代码块里有一个weight_decay值，这个值是从外部给来的，仅用于执行对于KD散度的权重递减（本代码没有收录adam优化器）。</p>
+<p>weight_decay通过get_decay_rate函数计算，并feed_dict传入（feed_dict是坏文明），代码如下：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> epochs, x_batch, y_batch <span class="keyword">in</span> train_batches:        </span><br><span class="line">    cur_decay, learning_rate = get_decay_rate(epochs)</span><br><span class="line">    train_feed_dict = &#123;</span><br><span class="line">        model.x: x_batch,</span><br><span class="line">        model.y: y_batch,</span><br><span class="line">        model.weight_decay: cur_decay,</span><br><span class="line">        model.learning_rate: learning_rate,</span><br><span class="line">        model.threshold: <span class="number">3.0</span>,</span><br><span class="line">        model.l1_threshold: <span class="number">1e-4</span></span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>由以上代码可知，get_decay_rate函数的入参是epochs，即训练轮次。</p>
+<p>按照训练轮次进行权重递减是常见操作，但是它这里手撸权重递减，让我后面在keras里使用这个方法时，改得意识模糊。因为keras中epoch值仅有框架本身能掌握，没有提供向模型内传入当前训练的epoch的方法。</p>
+<p>并且由于tensorflow1.X默认不是eager execution模式，而itag是用keras实现的，后端是1.x版本的tensorflow，直接改成eager execution有要修一堆bug，也没法自己简单的实现入参。</p>
+<p>最后我在itag中新增了一个input，然后在data generator中生成epoch作为假数据输入实现。</p>
+<p>以下是get_decay_rate函数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">get_decay_rate</span><span class="params">(epoch)</span>:</span></span><br><span class="line">    <span class="keyword">if</span> <span class="string">"char"</span> <span class="keyword">in</span> args.model:</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>, <span class="number">1e-3</span></span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">if</span> <span class="string">"rnn"</span> <span class="keyword">in</span> args.model:</span><br><span class="line">            learning_rate = <span class="number">5e-3</span></span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            learning_rate = <span class="number">5e-3</span></span><br><span class="line">        <span class="keyword">if</span> args.l1:</span><br><span class="line">            <span class="keyword">return</span> <span class="number">1e-6</span>, learning_rate</span><br><span class="line">        <span class="keyword">elif</span> args.variational:</span><br><span class="line">            <span class="keyword">if</span> <span class="string">"rnn"</span> <span class="keyword">in</span> args.model:</span><br><span class="line">                small_decay = <span class="number">1e-5</span></span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                small_decay = <span class="number">1e-5</span></span><br><span class="line">            large_deacy = <span class="number">1e-5</span></span><br><span class="line">            start_decay = <span class="number">40</span></span><br><span class="line">            interval = (large_deacy - small_decay) / (NUM_EPOCHS - start_decay)</span><br><span class="line">            <span class="keyword">if</span> epoch &lt; start_decay:</span><br><span class="line">                cur_decay = small_decay</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                cur_decay = interval * (epoch - small_decay) + small_decay</span><br><span class="line">            <span class="keyword">return</span> cur_decay, learning_rate</span><br><span class="line">        <span class="keyword">else</span>:</span><br><span class="line">            <span class="keyword">return</span> <span class="number">0</span>, learning_rate</span><br></pre></td></tr></table></figure>
+
+<p>根据使用的主任务模型的不同，KL散度的decay和学习率也有所不同。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>上古代码真难看。</p>
+<p>feed_dict是坏文明。</p>
+<p>KL散度实际计算逻辑分了三块真反人类。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/word-embedding/" rel="tag"># word embedding</a>
+              <a href="/tags/variational-inference/" rel="tag"># variational inference</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/17/paper-Variational-Approach-to-Vocabulary-Selection/" rel="prev" title="论文阅读：How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection">
+      <i class="fa fa-chevron-left"></i> 论文阅读：How Large a Vocabulary Does Text Classification Need? A Variational Approach to Vocabulary Selection
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入及简介"><span class="nav-number">1.</span> <span class="nav-text">引入及简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#核心模型"><span class="nav-number">2.</span> <span class="nav-text">核心模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码纠缠处其之一"><span class="nav-number">3.</span> <span class="nav-text">代码纠缠处其之一</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#主模型"><span class="nav-number">4.</span> <span class="nav-text">主模型</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#外围代码"><span class="nav-number">5.</span> <span class="nav-text">外围代码</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">6.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">17</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
