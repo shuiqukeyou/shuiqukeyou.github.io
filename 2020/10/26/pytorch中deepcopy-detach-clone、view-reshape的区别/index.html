@@ -47,24 +47,19 @@
   };
 </script>
 
-  <meta name="description" content="itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。 itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了(项目地址)。由于其只是个baseline，外加比较简单，故只进行简单分析。">
+  <meta name="description" content="两个关于pytorch的小tips。在折腾变分词嵌入时，我被复杂损失函数弄得头大，因而试图将变分词嵌入在pytorch上实现，不过最后没实现成，但折腾途中了解了一些别的知识。 （大概是2020年6月左右的事）">
 <meta property="og:type" content="article">
-<meta property="og:title" content="论文分析&#x2F;实现：Hashtag recommendation with topical attentionbased LSTM">
-<meta property="og:url" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/index.html">
+<meta property="og:title" content="pytorch中deepcopy&#x2F;detach&#x2F;clone、view&#x2F;reshape的区别">
+<meta property="og:url" content="https://shuiqu.moe/2020/10/26/pytorch%E4%B8%ADdeepcopy-detach-clone%E3%80%81view-reshape%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
 <meta property="og:site_name" content="ShuiQU">
-<meta property="og:description" content="itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。 itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了(项目地址)。由于其只是个baseline，外加比较简单，故只进行简单分析。">
-<meta property="og:image" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/image-20200921220522529.png">
-<meta property="article:published_time" content="2020-09-21T14:22:16.000Z">
-<meta property="article:modified_time" content="2020-09-21T14:35:07.453Z">
+<meta property="og:description" content="两个关于pytorch的小tips。在折腾变分词嵌入时，我被复杂损失函数弄得头大，因而试图将变分词嵌入在pytorch上实现，不过最后没实现成，但折腾途中了解了一些别的知识。 （大概是2020年6月左右的事）">
+<meta property="article:published_time" content="2020-10-26T04:36:45.000Z">
+<meta property="article:modified_time" content="2020-10-26T04:37:52.729Z">
 <meta property="article:author" content="ShuiQu">
-<meta property="article:tag" content="NLP">
-<meta property="article:tag" content="RNN">
-<meta property="article:tag" content="GRU">
-<meta property="article:tag" content="LSTM">
+<meta property="article:tag" content="pytorch">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://shuiqu.moe/2020/09/21/TLSTM-paper/image-20200921220522529.png">
 
-<link rel="canonical" href="https://shuiqu.moe/2020/09/21/TLSTM-paper/">
+<link rel="canonical" href="https://shuiqu.moe/2020/10/26/pytorch%E4%B8%ADdeepcopy-detach-clone%E3%80%81view-reshape%E7%9A%84%E5%8C%BA%E5%88%AB/">
 
 
 <script id="page-configurations">
@@ -76,7 +71,7 @@
   };
 </script>
 
-  <title>论文分析/实现：Hashtag recommendation with topical attentionbased LSTM | ShuiQU</title>
+  <title>pytorch中deepcopy/detach/clone、view/reshape的区别 | ShuiQU</title>
   
 
 
@@ -188,7 +183,7 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
-    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/09/21/TLSTM-paper/">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/10/26/pytorch%E4%B8%ADdeepcopy-detach-clone%E3%80%81view-reshape%E7%9A%84%E5%8C%BA%E5%88%AB/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
@@ -201,7 +196,7 @@
     </span>
       <header class="post-header">
         <h2 class="post-title" itemprop="name headline">
-          论文分析/实现：Hashtag recommendation with topical attentionbased LSTM
+          pytorch中deepcopy/detach/clone、view/reshape的区别
         </h2>
 
         <div class="post-meta">
@@ -212,22 +207,11 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2020-09-21 22:22:16 / 修改时间：22:35:07" itemprop="dateCreated datePublished" datetime="2020-09-21T22:22:16+08:00">2020-09-21</time>
-            </span>
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index">
-                    <span itemprop="name">论文阅读</span>
-                  </a>
-                </span>
+              <time title="创建时间：2020-10-26 12:36:45 / 修改时间：12:37:52" itemprop="dateCreated datePublished" datetime="2020-10-26T12:36:45+08:00">2020-10-26</time>
             </span>
 
           
-            <span id="/2020/09/21/TLSTM-paper/" class="post-meta-item leancloud_visitors" data-flag-title="论文分析/实现：Hashtag recommendation with topical attentionbased LSTM" title="阅读次数">
+            <span id="/2020/10/26/pytorch%E4%B8%ADdeepcopy-detach-clone%E3%80%81view-reshape%E7%9A%84%E5%8C%BA%E5%88%AB/" class="post-meta-item leancloud_visitors" data-flag-title="pytorch中deepcopy/detach/clone、view/reshape的区别" title="阅读次数">
               <span class="post-meta-item-icon">
                 <i class="fa fa-eye"></i>
               </span>
@@ -242,8 +226,8 @@
       </span>
       <span class="post-meta-item-text">Valine：</span>
     
-    <a title="valine" href="/2020/09/21/TLSTM-paper/#comments" itemprop="discussionUrl">
-      <span class="post-comments-count valine-comment-count" data-xid="/2020/09/21/TLSTM-paper/" itemprop="commentCount"></span>
+    <a title="valine" href="/2020/10/26/pytorch%E4%B8%ADdeepcopy-detach-clone%E3%80%81view-reshape%E7%9A%84%E5%8C%BA%E5%88%AB/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/10/26/pytorch%E4%B8%ADdeepcopy-detach-clone%E3%80%81view-reshape%E7%9A%84%E5%8C%BA%E5%88%AB/" itemprop="commentCount"></span>
     </a>
   </span>
   
@@ -258,19 +242,32 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <p>itag的baseline之一，一个基于LSTM和LDA的单tag推荐模型。</p>
-<p>itag的其他几个baseline都有现成的源码，但这个论文没有，严格来说是没有一个现成可以运行的源码。由于其结构不算复杂，故将其实现了<a href="https://github.com/shuiqukeyou/tlstm_py3" target="_blank" rel="noopener">(项目地址)</a>。由于其只是个baseline，外加比较简单，故只进行简单分析。</p>
+        <p>两个关于pytorch的小tips。在折腾变分词嵌入时，我被复杂损失函数弄得头大，因而试图将变分词嵌入在pytorch上实现，不过最后没实现成，但折腾途中了解了一些别的知识。</p>
+<p>（大概是2020年6月左右的事）</p>
 <a id="more"></a>
 
+<h2 id="clone-detach-deepcopy"><a href="#clone-detach-deepcopy" class="headerlink" title="clone/detach/deepcopy"></a>clone/detach/deepcopy</h2><h3 id="clone"><a href="#clone" class="headerlink" title="clone"></a>clone</h3><p>对一个张量调用clone方法，会：</p>
+<ul>
+<li>创建出完全新的对象，即与被源对象不使用同一块内存</li>
+<li>不引用、指向源对象的子对象和数据</li>
+<li>新对象会复制源对象的计算历史（梯度图）</li>
+</ul>
+<p>这意味可以通过clone复制出的对象可以完全取代源对象进行反向传播。</p>
+<h3 id="detach"><a href="#detach" class="headerlink" title="detach"></a>detach</h3><p>对一个张量调用detach方法，会：</p>
+<ul>
+<li>返回一个新的张量对象，这个张量有着独立的元数据</li>
+<li>但这个张量中的每个元素都指向源对象的元素</li>
+<li>这个张量不继承梯度图，requires_grad也为false</li>
+</ul>
+<p>这个操作通常在需要截断反向传播的地方使用，或者是配合clone指令返回一个只有张量值的拷贝</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">y &#x3D; x.clone().detach()</span><br></pre></td></tr></table></figure>
 
-
-<h2 id="模型分析"><a href="#模型分析" class="headerlink" title="模型分析"></a>模型分析</h2><p>本论文使用了LDA和LSTM对文本进行建模，然后使用attiention机制结合LDA和LSTM输出的编码向量，最后对编码向量使用softmax进行输出，结构图如下：</p>
-<p>和原模型不同地方在于，我将LSTM单元替换为了GRU，根据论文<a href="https://arxiv.org/pdf/1412.3555v1.pdf" target="_blank" rel="noopener">Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling</a>的结果来看，除非有必要使用LSTM（例如需要使用LSTM单元的记忆门的值），否则使用GRU的结果通常优于LSTM</p>
-<img src="/2020/09/21/TLSTM-paper/image-20200921220522529.png" class="" title="This is an image">
-
-<p>计算流程如下：</p>
-<p>文本分别送入GRU编码器和LDA模型中（LDA模型是提前进行训练好的），然后将LDA的主题向量和编码器输出的时间步序列输入到注意力层中，计算后进行输出，输出层使用softmax函数。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这个模型的相当于使用LDA对文本的类型进行了一个预判，预判的类别信息可以改善GRU的模型输出结果。另外，不同于通常的基于RNN的文本分类器/单tag推荐任务（它们通常使用最终的state向量进行softmax计算），由于使用了attention，模型最终用于输出tag的信息是时间步序列，这种情况下模型受梯度爆炸/消失的影响较小。</p>
+<h3 id="deepcopy"><a href="#deepcopy" class="headerlink" title="deepcopy"></a>deepcopy</h3><p>deepcopy是python自带的复制方法(copy.deepcopy)，用于复制一个对象，以及对象内的子对象。复制出的新对象与源对象没有任何关系。</p>
+<p>就我看到的情况中，当其作用于pytorch的张量时，效果与clone一样。</p>
+<h2 id="view-reshape"><a href="#view-reshape" class="headerlink" title="view/reshape"></a>view/reshape</h2><p>这两个函数都是对张量的形状进行调整，区别在于：</p>
+<p>view直接返回原始张量的新视图对象，这个对象只是形状发生了改变，底层数据仍然指向原始数据。view需要在连续的数据上执行。</p>
+<p>reshape等价于.contiguous().view()，它可能是原始张量的新视图，即仍然指向原始数据（如果原始数据在内存中连续，不需要调整数据）；也有可能是新的张量（如果数据发生了调整）。</p>
+<p>如果需要保证是在原数据上进行修改，就只能使用view。</p>
 
     </div>
 
@@ -280,10 +277,7 @@
 
       <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/NLP/" rel="tag"># NLP</a>
-              <a href="/tags/RNN/" rel="tag"># RNN</a>
-              <a href="/tags/GRU/" rel="tag"># GRU</a>
-              <a href="/tags/LSTM/" rel="tag"># LSTM</a>
+              <a href="/tags/pytorch/" rel="tag"># pytorch</a>
           </div>
 
         
@@ -292,13 +286,10 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2020/09/21/itag-review/" rel="prev" title="一年后看ITAG——写在itag源码分析之后">
-      <i class="fa fa-chevron-left"></i> 一年后看ITAG——写在itag源码分析之后
+    <a href="/2020/10/24/%E5%A6%82%E4%BD%95%E5%9C%A8keras%E4%B8%AD%E5%AE%9E%E7%8E%B0%E5%A4%8D%E6%9D%82%E7%9A%84%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0/" rel="prev" title="如何在keras中实现复杂的损失函数">
+      <i class="fa fa-chevron-left"></i> 如何在keras中实现复杂的损失函数
     </a></div>
-      <div class="post-nav-item">
-    <a href="/2020/09/24/lstm%E2%80%94-experiment/" rel="next" title="TLSTM的改良实验">
-      TLSTM的改良实验 <i class="fa fa-chevron-right"></i>
-    </a></div>
+      <div class="post-nav-item"></div>
     </div>
       </footer>
     
@@ -359,7 +350,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#模型分析"><span class="nav-number">1.</span> <span class="nav-text">模型分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.</span> <span class="nav-text">总结</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#clone-detach-deepcopy"><span class="nav-number">1.</span> <span class="nav-text">clone&#x2F;detach&#x2F;deepcopy</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#clone"><span class="nav-number">1.1.</span> <span class="nav-text">clone</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#detach"><span class="nav-number">1.2.</span> <span class="nav-text">detach</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#deepcopy"><span class="nav-number">1.3.</span> <span class="nav-text">deepcopy</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#view-reshape"><span class="nav-number">2.</span> <span class="nav-text">view&#x2F;reshape</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
