@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="简单的介绍了一下跨语言信息检索的发展状况。 （因为换到个新方向所以做了这个） （其实是拿来开题用的）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="跨语言检索综述">
+<meta property="og:url" content="https://shuiqu.moe/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="简单的介绍了一下跨语言信息检索的发展状况。 （因为换到个新方向所以做了这个） （其实是拿来开题用的）">
+<meta property="article:published_time" content="2021-01-23T12:55:48.000Z">
+<meta property="article:modified_time" content="2021-02-06T13:00:44.548Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="CLIR">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://shuiqu.moe/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>跨语言检索综述 | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          跨语言检索综述
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2021-01-23 20:55:48" itemprop="dateCreated datePublished" datetime="2021-01-23T20:55:48+08:00">2021-01-23</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-02-06 21:00:44" itemprop="dateModified" datetime="2021-02-06T21:00:44+08:00">2021-02-06</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/other/" itemprop="url" rel="index">
+                    <span itemprop="name">other</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/" class="post-meta-item leancloud_visitors" data-flag-title="跨语言检索综述" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>简单的介绍了一下跨语言信息检索的发展状况。</p>
+<p>（因为换到个新方向所以做了这个）</p>
+<p>（其实是拿来开题用的）</p>
+<a id="more"></a>
+
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>这个时代，互联网大大加强了全球间的信息交流，从而导致了信息爆炸，各个领域的数据都出现了大规模增长[1]，大量的有效信息被掩盖在更大量的无效信息中，信息的形式也多种多样。这使得信息本身已经变得不再重要，重要的是如何寻找到自己想要的信息。信息检索技术的在各行各业都有着广泛的应用，尤其随着全球信息化进程的推进，信息检索覆盖的广度和技术运用的深度都将大大增加。因此信息检索(Information Retrieval: IR)相关的技术的重要性不言而喻。而随着全球经济文化的联系逐渐紧密，人们对于信息检索的范围也不再局限于自己熟悉的语言，对于其他种类的语言的信息的获取的需求也逐渐增加[2]，如推特、ins等国际社交平台上汇集了来自世界各个地方的人，这些用户有着直接和其他人交流信息的需求[2]。在学术领域通过一种语言检索其他语言的资料、文献的需求日渐强烈，有许多数据、文献没有翻译后的版本，也不以英文等主流语言的形式存在。而在经济方面，驱动力则更加直接，买卖双方都需要检索查找全球的商品信息，寻找自己需要的产品与服务，因而针对不同语言的跨语言检索(Cross-Language Information Retrieval: CLIR)也逐渐成为了研究热点。</p>
+<p>除了需要解决传统IR需要解决的问题之外，CLIR还面临着跨语言问题[3]，跨近年来，学者们为了解决这些问题，围绕CLIR进行了大量的研究，根据解决跨语言问题的手段，现有的模型可分为两类[4]：使用翻译手段对查询或文档进行翻译后再进行检索，或是使用语义模型对语义进行统一后再进行检索。前者按翻译对象可以分为三类：对查询进行翻译[5-7]、对文档进行翻译[8-10]、对查询和文档进行翻译[11,12]，基于翻译的CLIR是最主要的CLIR技术；而基于语义的CLIR模型目前通常使用跨语言词向量[13,14]、跨语言主题模型[16,17]或是直接训练跨语言模型[18,19]。另外，除了这两类方法，还有一些从检索任务本身出发的对CLIR模型进行增强的研究[20-22]。</p>
+<h2 id="CLIR技术方法"><a href="#CLIR技术方法" class="headerlink" title="CLIR技术方法"></a>CLIR技术方法</h2><p>CLIR技术首先要解决的是如何将不同语言统一的问题，根据解决这个问题的方法，可以将CLIR技术分为两类[4]，一类是基于翻译的，另一类是基于语义的。这两类方法的本质都是对文本进行一定的转换，要么是将其中一种语言映射到另一种语言的空间中，或是同时对两个语言进行转换，将其统一到同一个空间中。本节将会介绍这两类技术的一些最新的进展。由于CLIR任务的本质是一个检索任务，另外还有一些CLIR技术的研究的着力点是检索任务本身，这些改进对于CLIR任务的性能也有一定的增强效果。</p>
+<h3 id="基于翻译的CLIR技术"><a href="#基于翻译的CLIR技术" class="headerlink" title="基于翻译的CLIR技术"></a>基于翻译的CLIR技术</h3><p>这类技术是借助翻译手段将查询序列或被搜索文本进行翻译后再进行检索。基于翻译的CLIR技术是最主要的CLIR技术，尤其是得益于近年来深度学习和机器翻译技术上的突破，基于翻译的CLIR的检索精度获得了极大的提升。基于翻译的CLIR技术最显著的问题在于，无法解决词的多义性问题，尤其是不同语种间的词的多义性严重的影响了检索结果的准确性，而研究表明，翻译的质量对检索结果有极大的影响[5]。得益于近些年机器翻译领域的突破，基于翻译的CLIR模型已经逐渐转向使用机器翻译，例如He等人仅仅尝试了在IR模型中引入了谷歌翻译[23]，就极大的改善了检索的结果。目前，用于CLIR任务的翻译系统的主要有主要分为三类：查询翻译、文档翻译、查询和文档翻译。</p>
+<h4 id="查询翻译"><a href="#查询翻译" class="headerlink" title="查询翻译"></a>查询翻译</h4><p>查询翻译是指对输入的查询文本进行翻译，将其转换为文档的语种，查询翻译是最主要的翻译的CLIR技术。由于用户输入的查询通常是简短而模糊的，翻译准确度也较低，这对于检索任务是不利的。因而查询翻译需要提高对于查询的翻译效果，例如Elayeb等人构建了一个提取出查询中的实体单词进行辅助翻译的模型[6]，这个模型提取出查询中的实体单词，利用外部词典对实体单词进行翻译，再利用翻译后的实体辅助整个查询进行翻译，提高了查询翻译的精度。而Chandra等人建立了一个双向翻译系统来执行查询翻译[7]，这个双向翻译将文本翻译之后再反向翻译成原来的语种，通过反向翻译的结果对翻译系统的效果进行评估以改善翻译系统的质量，结果表明，反向翻译对提升了查询翻译的质量，使得CLIR任务的效果有了明显的提升。</p>
+<h4 id="文档翻译"><a href="#文档翻译" class="headerlink" title="文档翻译"></a>文档翻译</h4><p>由于查询翻译的效果受到了查询输入本身的性质的限制，因而另一类翻译系统是选择对于文档进行翻译，相比简单的查询信息，被查询文档的信息量更大，文本内容也更加连贯，翻译的效果相对较好。例如Yarmohammadi等人提出了一个使用多模态信息进行检索的模型[8]，首先将文档通过翻译工具以及文字转语音工具转换成多模态数据，然后通过多模态信息进行检索，取得了较好的成果。Ture, F等人构建出了一个用于CLIR的分层翻译系统[9]，将翻译任务分为短语、语法、语义三个级别，最后利用这三个层级的翻译信息执行CLIR任务，相比直接翻译整个句子的平面化的翻译模型，这个立体的翻译模型翻译效果更好，计算效率也更高，同时产生了更好的检索效果。Azarbonyad等人提出了一种通过Learn to ranking技术将多种翻译资源进行结合的方法[10]，简单来说，这个模型使用了多个独立的翻译资源，并通过LTR技术结合不同的翻译资源的结果以提高CLIR任务的性能，结果表明，LTR可用于成功地组合不同的翻译资源以提高CLIR性能。</p>
+<h4 id="查询和文档翻译"><a href="#查询和文档翻译" class="headerlink" title="查询和文档翻译"></a>查询和文档翻译</h4><p>由于翻译资源的限制，两种语言之间的直接翻译并不总是可行的。如果在这种情况下仍然要使用基于翻译的检索，就需要借助第三方语言，通常称其为枢纽语言。这种方法的例子之一是Oard, D等开发的一个借助预定义词表进行双重翻译的模型[11]。由于需要对查询和文档都进行转换，导致这种方案检索的精度相对较低，但在一些特定情况下，这种方法有着其独特的优势[12]。</p>
+<h3 id="基于语义的CLIR技术"><a href="#基于语义的CLIR技术" class="headerlink" title="基于语义的CLIR技术"></a>基于语义的CLIR技术</h3><p>基于语义的CLIR技术是指通过语义模型，将两种不同的语言在语义上进行统一后再执行IR任务，得益于深度学习和自然语言处理技术的发展，基于语义的CLIR技术近些年获得了较大的发展。目前，基于语义的CLIR技术主要分为三类，基于跨语言词向量、基于主题模型、基于语言模型。</p>
+<h4 id="基于跨语言词向量"><a href="#基于跨语言词向量" class="headerlink" title="基于跨语言词向量"></a>基于跨语言词向量</h4><p>基于跨语言词向量的CLIR是最主要的基于语义的CLIR技术。词向量基于一个假说，即一个词可以由它的上下文表示，即一个词可以通过词-上下文矩阵表示。而上下文相似的词，其语义也相似[25]。在这种假设下，两个词的语义相似度可以直接转化为两个向量的空间距离。词向量最早由Bengio 等人提出[26]，但词向量的正式成型是在2013年，在2013年，由Mikolov提出了著名的word2vec模型 [27]，词向量通过对one-hot表示的词进行低维表示，获得了更高的信息密度，提高了的表示性能。词向量有一个重要的假设，不同语言的同义词在各自的向量空间中有着类似的表示[28]，而跨语言词向量本质是在一个联合向量空间中对不同的语言进行表示。随着单语词向量在许多NLP任务中的成功应用[32]，词向量在跨语言自然语言处理任务中的潜力自然引起了人们的广泛关注[29]。Yu等[13]人，利用跨语言词向量模型，将查询词和文本映射到同一个空间中，再使用KNRM、DRMM等基于词向量的单语言检索模型进行执行检索任务，跨语言词向量在这些模型上表现出了明显的优势，这表明跨语言词向量在不同的语言间进行词义建模的有效性。</p>
+<p>和基于翻译的CLIR一样，有监督的跨语言词向量的训练常需要平行/可比语料库，这类数据的资源数量相对较少，尤其是对于一些稀缺的语言，数据集的获取难度和成本较高。为了减少对于这类特殊语料的需求，无监督的跨语言词向量也被运用于CLIR中。例如Litschko仅使用多个单语言语料库，通过GAN进行无监督学习[14]，通过GAN诱导两个单语词向量进行对齐，弥合了不同语言间的语义鸿沟，对不同语言的特征进行了有效的约束，最终生成了统一的多语词向量空间，后续的试验表明，这个多语词向量空间能有效的进行跨语言检索任务。</p>
+<p>目前基于跨语言词向量的CLIR技术仍然是CLIR的重要组成部分，并将持续发展下去，一方面是因为数据量和算力的提升，使得使用大量的数据训练出更高精度的跨语言词向量成为了可能。另一方面是因为近几年深度模型在跨语言词向量方面的发展大大的增加了跨语言词向量的训练手段。</p>
+<h4 id="基于跨语言主题词"><a href="#基于跨语言主题词" class="headerlink" title="基于跨语言主题词"></a>基于跨语言主题词</h4><p>另一类基于语义的CLIR模型是基于跨语言主题词进行IR任务。相比使用整段文本进行检索，利用主题词检索有着其独特的优势。主题词可以有效的对文本内容进行概括，主题词对被检索内容是一对多的关系，因而利用主题词进行检索的速度更快，资源消耗更少[15]。目前，主题词检索在文献检索、图书检索等领域有着广泛的应用。早期的主题词检索依赖于人工筛选编制的主题词表的方式，耗时且成本昂贵。目前的绝大部分的跨语言主题词模型都使用模型生成主题词，大部分的工作也集中在如何生成更精确的主题词上。</p>
+<p>例如Glavaš提出了一个称为BiLDA的跨语言LDA模型[16]，该模型通过双语文本直接学习跨语言主题词，并且仅通过BiLDA生成的跨语言主题词执行CLIR任务就取得了较好的效果。另外，传统的主题模型在跨语言检索领域也有着一定的应用，Huo等人创建了一个结合了多种主题模型的跨语言检索模型[17]，模型使用了概率潜在语义分析技术提取文档的主题，还使用了TF-IDF提取文档的关键词，然后基于单词共现提取了词对相关性，再通过词对相关性结合了不同语种的主题词和关键词，生成了跨语言主题词并将其用于CLIR任务。</p>
+<h4 id="基于深度语言模型"><a href="#基于深度语言模型" class="headerlink" title="基于深度语言模型"></a>基于深度语言模型</h4><p>得益于NLP和深度学习的发展，目前还有一类基于语义的CLIR模型是直接使用深度模型进行语义建模。例如Glavas等人，构建了一个基于BiLSTM语言模型[18]，该模型将BiLSTM作为跨语言编码器，同时对两种不同的语言进行编码，然后结合attention机制利用BiLSTM输出的隐藏状态计算出的文本编码向量，在利用编码向量计算出检索序列和被检索文档的相关性得分，最后基于相关性得分完成检索任务。Robert Litschko等提出了一个微调BERT模型的方法[19]，并且使用这个微调后的BERT模型构建了一个跨语言模型，从而直接生成两种不同语言的跨语言映射，执行检索任务。相比传统模型，深度模型对信息捕捉的效果更好，尤其是传统模型无法捕捉的更深层次的信息，这些信息使得模型有着更好的泛化性能。</p>
+<h3 id="一些其他的CLIR技术"><a href="#一些其他的CLIR技术" class="headerlink" title="一些其他的CLIR技术"></a>一些其他的CLIR技术</h3><p>虽然对于CLIR任务来说，解决跨语言问题很重要，但由于CLIR的本质是检索任务，所以也有一些学者从检索任务本身的角度着手对CLIR进行了改良，并且这些尝试也取得了一定的成果。</p>
+<p>查询扩展：对于跨语言检索任务，由于用户的知识有限，用户提供的查询信息很可能是不足的，这使得检索的有效性结果受到了一定的影响。Warrier等人尝试在CLIR任务中引入了查询扩展技术[20]，通过多语言词典和单语言模型对查询序列进行扩展，一方面增加了查询信息，同时一定程度上实现了用户的个性化查询。</p>
+<p>在线学习排名(online learning to rank)： CLIR模型返回的结果的噪声较大，排名的精确度不如单语言检索。Rahimi等人在CLIR模型中引入了在线学习排名模型[21]，这个模型基于用户交互的结果进行在线学习，相比普通的CLIR模型，这个模型返回的检索的结果的排名的精确度有明显提升，同时向用户提供了个性化检索。</p>
+<p>对翻译的排名模型：前已述及，翻译质量对于基于翻译的CLIR模型的质量有相当大的影响，Hieber等创建了一个适用于机器翻译的Ranking模型[22]。这个模型使用了一些成熟的机器翻译模型，根据输入的查询文本和机器翻译模型返回的翻译结果，对翻译结果进行排序，选择出最优的翻译结果后用于检索任务，相比单独使用成熟的机器翻译模型，这个对于翻译结果进行排序的模型展现出了积极的作用。</p>
+<h2 id="结论和展望"><a href="#结论和展望" class="headerlink" title="结论和展望"></a>结论和展望</h2><p>综上所述，在解决跨语言问题的方面，基于翻译和基于语义的方法表现出了各自的优势，得益于近几年机器翻译技术的突破，基于翻译的CLIR技术是准确度最高的。而随着深度学习的发展，基于语义的CLIR技术也有着巨大的发展潜力。但无论哪种CLIR技术都面临着用户输入的查询短且模糊的问题，查询信息的不足限制了CLIR模型的性能的进一步提升。而多任务学习对多个相关的任务进行共同学习，通过共享参数、模块在任务间共享信息[30,31]。通过在CLIR任务中引入多任务学习，可以利用辅助任务提供的信息对查询进行补充，从而提高检索的精度，因而在CLIR任务中引入多任务学习有其积极意义。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/CLIR/" rel="tag"># CLIR</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/" rel="prev" title="论文阅读：A Study of Neural Matching Models for Cross-lingual IR">
+      <i class="fa fa-chevron-left"></i> 论文阅读：A Study of Neural Matching Models for Cross-lingual IR
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/02/06/pytorch%E4%B8%AD%E7%9A%84model%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%88%97%E8%A1%A8%EF%BC%9AModuleList/" rel="next" title="pytorch中的model对象的列表：ModuleList">
+      pytorch中的model对象的列表：ModuleList <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CLIR技术方法"><span class="nav-number">2.</span> <span class="nav-text">CLIR技术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于翻译的CLIR技术"><span class="nav-number">2.1.</span> <span class="nav-text">基于翻译的CLIR技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查询翻译"><span class="nav-number">2.1.1.</span> <span class="nav-text">查询翻译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文档翻译"><span class="nav-number">2.1.2.</span> <span class="nav-text">文档翻译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查询和文档翻译"><span class="nav-number">2.1.3.</span> <span class="nav-text">查询和文档翻译</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于语义的CLIR技术"><span class="nav-number">2.2.</span> <span class="nav-text">基于语义的CLIR技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于跨语言词向量"><span class="nav-number">2.2.1.</span> <span class="nav-text">基于跨语言词向量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于跨语言主题词"><span class="nav-number">2.2.2.</span> <span class="nav-text">基于跨语言主题词</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于深度语言模型"><span class="nav-number">2.2.3.</span> <span class="nav-text">基于深度语言模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一些其他的CLIR技术"><span class="nav-number">2.3.</span> <span class="nav-text">一些其他的CLIR技术</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论和展望"><span class="nav-number">3.</span> <span class="nav-text">结论和展望</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

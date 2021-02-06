@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="目前已经有许多使用跨语言词向量（CLWE）实现的跨语言检索（CLIR）模型，但是没有人尝试过在CLWE上直接使用经典的单语言检索模型。本论文论证了可行性，并进行了实验。结果表明基于匹配的单语言检索模型可以不加修改的在CLWE上进行CLIR任务。 （转向做CLIR后读的第一篇论文，也是我后续工作的基础）">
+<meta property="og:type" content="article">
+<meta property="og:title" content="论文阅读：A Study of Neural Matching Models for Cross-lingual IR">
+<meta property="og:url" content="https://shuiqu.moe/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="目前已经有许多使用跨语言词向量（CLWE）实现的跨语言检索（CLIR）模型，但是没有人尝试过在CLWE上直接使用经典的单语言检索模型。本论文论证了可行性，并进行了实验。结果表明基于匹配的单语言检索模型可以不加修改的在CLWE上进行CLIR任务。 （转向做CLIR后读的第一篇论文，也是我后续工作的基础）">
+<meta property="article:published_time" content="2020-12-19T12:54:14.000Z">
+<meta property="article:modified_time" content="2021-01-23T12:58:46.583Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="NLP">
+<meta property="article:tag" content="CLIR">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>论文阅读：A Study of Neural Matching Models for Cross-lingual IR | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          论文阅读：A Study of Neural Matching Models for Cross-lingual IR
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2020-12-19 20:54:14" itemprop="dateCreated datePublished" datetime="2020-12-19T20:54:14+08:00">2020-12-19</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2021-01-23 20:58:46" itemprop="dateModified" datetime="2021-01-23T20:58:46+08:00">2021-01-23</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index">
+                    <span itemprop="name">论文阅读</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/" class="post-meta-item leancloud_visitors" data-flag-title="论文阅读：A Study of Neural Matching Models for Cross-lingual IR" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/12/19/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB%EF%BC%9AA-Stu-of-Neural-Matching-Models-for-Cross-lingual-IR/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>目前已经有许多使用跨语言词向量（CLWE）实现的跨语言检索（CLIR）模型，但是没有人尝试过在CLWE上直接使用经典的单语言检索模型。本论文论证了可行性，并进行了实验。结果表明基于匹配的单语言检索模型可以不加修改的在CLWE上进行CLIR任务。</p>
+<p>（转向做CLIR后读的第一篇论文，也是我后续工作的基础）</p>
+<a id="more"></a>
+
+<h1 id="论文阅读：A-Study-of-Neural-Matching-Models-for-Cross-lingual-IR"><a href="#论文阅读：A-Study-of-Neural-Matching-Models-for-Cross-lingual-IR" class="headerlink" title="论文阅读：A Study of Neural Matching Models for Cross-lingual IR"></a>论文阅读：A Study of Neural Matching Models for Cross-lingual IR</h1><p>目前已经有许多使用跨语言词向量（CLWE）实现的跨语言检索（CLIR）模型，但是没有人尝试过在CLWE上直接使用经典的单语言检索模型。本论文论证了可行性，并进行了实验。结果表明基于匹配的单语言检索模型可以不加修改的在CLWE上进行CLIR任务。</p>
+<p>（转向做CLIR后读的第一篇论文，也是我后续工作的基础）</p>
+<h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>一些前人对于基于CLWE的CLIR模型的实验表明，CLWE可能有当作翻译资源使用的潜力。而基于翻译的CLIR模型通常侧重于翻译系统的构建，对于检索任务本身则直接使用现有的检索模型。因而本文的作者尝试借助CLWE和单语的神经检索模型构建CLIR模型。</p>
+<p>单语言的神经IR模型成功的原因可以分为两类：</p>
+<ul>
+<li>模式学习：单词级查询文档交互的构建可以通过不同的神经网络体系结构学习各种匹配模式（词级别、句级别、段级别匹配）。</li>
+<li>表征学习：可以从大规模训练数据进行端到端学习来定制化的学习词嵌入。</li>
+</ul>
+<p>但在CLIR中，每个可用语言对的数据集通常少于200个查询，只能支持容量较小的训练神经模型。因此，本论文侧重于模式学习方面。</p>
+<p>本论文提出以下两个研究问题：</p>
+<p>Q1：单语言检索的神经模型应如何适应CLIR？</p>
+<p>Q2：神经模型如何与CLIR的无监督模型进行比较？</p>
+<h2 id="研究进展"><a href="#研究进展" class="headerlink" title="研究进展"></a>研究进展</h2><p>（不是废话的那种研究进展）</p>
+<h3 id="基于CLWE的无监督CLIR模型"><a href="#基于CLWE的无监督CLIR模型" class="headerlink" title="基于CLWE的无监督CLIR模型"></a>基于CLWE的无监督CLIR模型</h3><p>作者举了两个模型：</p>
+<ul>
+<li>BWE-Agg使用查询和文档嵌入的余弦相似性，对查询对文档的匹配程度进行排名。<ul>
+<li>BWE-Agg-Add使用查询和文档的所有单词的平均嵌入</li>
+<li>BWE-Agg-IDF通过对TF-IDF加权来构建文档嵌入。</li>
+</ul>
+</li>
+<li>TbT-QT把CLWE当作翻译资源使用，采用查询词的top-1转换，并使用查询似然模型进行检索。</li>
+</ul>
+<h3 id="神经IR模型"><a href="#神经IR模型" class="headerlink" title="神经IR模型"></a>神经IR模型</h3><p>这里作者举了三个模型：</p>
+<ul>
+<li>MatchPyramid(MP)：通过计算查询和文档的每个单词的余弦相似度，构建一个交互图，然后在这个交互图上进行卷积获得最终输出。</li>
+<li>DRMM：使用匹配直方图捕捉查询和文档的交互，匹配直方图的捕捉长度设定为一系列不同的bin值，以完成对不同匹配粒度的捕捉，最后加权不同bin值的直方图捕捉到的特征。</li>
+<li>KNRM：使用类似MP的操作生成交互图，但是使用具有不同µ的高斯核将交互“分类”为不同级别的余弦相似度。KNRM的独特优势在于它允许梯度穿过高斯内核，因此其支持端到端的嵌入学习。</li>
+</ul>
+<h2 id="从单语言到跨语言"><a href="#从单语言到跨语言" class="headerlink" title="从单语言到跨语言"></a>从单语言到跨语言</h2><h3 id="是否需要调整神经IR模型"><a href="#是否需要调整神经IR模型" class="headerlink" title="是否需要调整神经IR模型"></a>是否需要调整神经IR模型</h3><p>在单语言任务上，上文提到的三个模型的性能排行为KNRM&gt; DRMM&gt; MP，但即使冻结词向量的学习（即KNRM会丢失一大优势），三个模型在IR任务上的性能排行仍然为KNRM&gt; DRMM&gt; MP，即无需特意的调整模型，不会影响结论。</p>
+<p>但将单语言IR模型应用到CLIR任务中仍然有以下几个问题需要解决：</p>
+<h3 id="精确匹配信号"><a href="#精确匹配信号" class="headerlink" title="精确匹配信号"></a>精确匹配信号</h3><p>相比单语言IR，CLIR可能很难有不同语言中的的单词完全匹配的情况，这对于基于余弦相似度的IR模型（例如MP）可会有巨大的影响。因此作者设计了一个改版的MP模型：MP-Hybrid。</p>
+<p>这个模型把从指示函数的精确匹配信号和余弦相似性函数构建的交互矩阵中提取的软匹配信号结合在一起，串联这两个双通道的排名特征以用于MLP以预测排名得分。</p>
+<h3 id="词对相似度分布"><a href="#词对相似度分布" class="headerlink" title="词对相似度分布"></a>词对相似度分布</h3><p>词向量有一个重要的假设：不同语言中的同义词的分布是接近的。并且这个假设获得了很多工程上的证明，但是不同语言间的词分布仍然是有一定的差距的。如图所示，英语嵌入式空间1中五个与“电话”最接近的词的余弦相似度范围为0.818至0.669，而英语-西班牙语对齐的嵌入式空间2的余弦相似度范围为0.535至0.520。相似度分布会影响DRMM的直方图构造，并且对于KNRM的内核池也类似。</p>
+<h3 id="词汇不匹配和翻译错误"><a href="#词汇不匹配和翻译错误" class="headerlink" title="词汇不匹配和翻译错误"></a>词汇不匹配和翻译错误</h3><p>基于翻译的CLIR方法常常受以上两个问题的影响，对于在CLIR任务中使用IR模型，如果使用基于翻译的方法，以上两个问题会被放大的更明显（因为单语IR模型往往不侧重于考虑这些问题）。为了证明迁移单语言IR模型到CLIR任务中使用CLWE的重要性，作者设计了一组称为{MP，DRMM，K-NRM} -TbT-QT的模型，这些模型使用TbT-QT对查询进行Top-1翻译，然后使用这三个单语言检索模型进行检索。</p>
+<h2 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h2><h3 id="数据集及超参数"><a href="#数据集及超参数" class="headerlink" title="数据集及超参数"></a>数据集及超参数</h3><p><strong>数据集</strong>：CLEF 2000-2003广告系列评估模型。使用四种语言对：英语（EN）查询-{荷兰语（NL），意大利语（IT），芬兰语（FI），西班牙语（ES}文档。截断保留前500个单词。</p>
+<p><strong>跨语言单词嵌入</strong>：在Wikipedia语料库上使用相应的语言训练单语言的FastText嵌入，并使用来自小型双语词典的弱监督进行对齐，并以RCSLS损失作为优化目标。</p>
+<p><strong>MP模型</strong>：采用一层卷积，其内核大小设置为3×3，动态池大小设置为5×1，内核计数设置为64。</p>
+<p><strong>DRMM模型</strong>，我们采用基于对数计数的直方图，其中bin大小设置为30。</p>
+<p><strong>KNRM模型</strong>，内核数设置为20，每个高斯内核的标准偏差设置为0.1。</p>
+<h2 id="实验结果和结论"><a href="#实验结果和结论" class="headerlink" title="实验结果和结论"></a>实验结果和结论</h2><p>通常我不提及实验结果（实验结果差谁会发？）</p>
+<p>不过这篇论文的可以提一下：本文使用的三种IR模型，在CLWE空间中，都是原版效果最好。即整花活儿没有意义。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>这论文吧，工作量其实没多大，就是拎了几个单语IR模型到CLWE空间里跑，但是文笔好，论证了一大堆，尤其是对于Q1的讨论，论证了一大堆，最后结论是不需要修改单语IR模型就可以直接适应。</p>
+<p>但是确实有一定的意义，本论文证明了在CLWE上使用IR模型执行CLIR任务的可行性。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/NLP/" rel="tag"># NLP</a>
+              <a href="/tags/CLIR/" rel="tag"># CLIR</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/11/18/centos-7%E5%88%9B%E5%BB%BA%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84%E8%87%AA%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1/" rel="prev" title="centos 7创建带参数的自启动服务">
+      <i class="fa fa-chevron-left"></i> centos 7创建带参数的自启动服务
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2021/01/23/%E8%B7%A8%E8%AF%AD%E8%A8%80%E6%A3%80%E7%B4%A2%E7%BB%BC%E8%BF%B0/" rel="next" title="跨语言检索综述">
+      跨语言检索综述 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#论文阅读：A-Study-of-Neural-Matching-Models-for-Cross-lingual-IR"><span class="nav-number">1.</span> <span class="nav-text">论文阅读：A Study of Neural Matching Models for Cross-lingual IR</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入"><span class="nav-number">1.1.</span> <span class="nav-text">引入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#研究进展"><span class="nav-number">1.2.</span> <span class="nav-text">研究进展</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于CLWE的无监督CLIR模型"><span class="nav-number">1.2.1.</span> <span class="nav-text">基于CLWE的无监督CLIR模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#神经IR模型"><span class="nav-number">1.2.2.</span> <span class="nav-text">神经IR模型</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从单语言到跨语言"><span class="nav-number">1.3.</span> <span class="nav-text">从单语言到跨语言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#是否需要调整神经IR模型"><span class="nav-number">1.3.1.</span> <span class="nav-text">是否需要调整神经IR模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#精确匹配信号"><span class="nav-number">1.3.2.</span> <span class="nav-text">精确匹配信号</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#词对相似度分布"><span class="nav-number">1.3.3.</span> <span class="nav-text">词对相似度分布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#词汇不匹配和翻译错误"><span class="nav-number">1.3.4.</span> <span class="nav-text">词汇不匹配和翻译错误</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验"><span class="nav-number">1.4.</span> <span class="nav-text">实验</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#数据集及超参数"><span class="nav-number">1.4.1.</span> <span class="nav-text">数据集及超参数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#实验结果和结论"><span class="nav-number">1.5.</span> <span class="nav-text">实验结果和结论</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">1.6.</span> <span class="nav-text">总结</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>

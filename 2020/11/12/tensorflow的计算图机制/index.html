@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.1.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+  <meta name="google-site-verification" content="Z5SXAd9_vgtfS3nzsDbs8LBIhQ_RbxIvgYOJwJL5slI">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css">
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    hostname: new URL('https://shuiqu.moe').hostname,
+    root: '/',
+    scheme: 'Pisces',
+    version: '7.6.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":false,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    comments: {"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: '',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}
+  };
+</script>
+
+  <meta name="description" content="在实现变分词嵌入版的itag时，我被tensorflow的上古老版本和新版之间的差异折腾麻了，但折腾的过程也让我了解到了很多tensorflow的底层机制。尤其是一大堆eager Excution执行模式的相关报错让我充分了解了计算图机制。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="tensorflow的计算图机制">
+<meta property="og:url" content="https://shuiqu.moe/2020/11/12/tensorflow%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9C%BA%E5%88%B6/index.html">
+<meta property="og:site_name" content="ShuiQU">
+<meta property="og:description" content="在实现变分词嵌入版的itag时，我被tensorflow的上古老版本和新版之间的差异折腾麻了，但折腾的过程也让我了解到了很多tensorflow的底层机制。尤其是一大堆eager Excution执行模式的相关报错让我充分了解了计算图机制。">
+<meta property="article:published_time" content="2020-11-12T07:47:51.000Z">
+<meta property="article:modified_time" content="2020-11-12T07:48:20.938Z">
+<meta property="article:author" content="ShuiQu">
+<meta property="article:tag" content="tensorflow">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://shuiqu.moe/2020/11/12/tensorflow%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9C%BA%E5%88%B6/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true
+  };
+</script>
+
+  <title>tensorflow的计算图机制 | ShuiQU</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">ShuiQU</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">Save you from anything</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-分类">
+
+    <a href="/categories/" rel="section"><i class="fa fa-fw fa-tasks"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-归档">
+
+    <a href="/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档</a>
+
+  </li>
+  </ul>
+
+</nav>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-Hans">
+    <link itemprop="mainEntityOfPage" href="https://shuiqu.moe/2020/11/12/tensorflow%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9C%BA%E5%88%B6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="ShuiQu">
+      <meta itemprop="description" content="一直摸鱼一直爽">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="ShuiQU">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          tensorflow的计算图机制
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-11-12 15:47:51 / 修改时间：15:48:20" itemprop="dateCreated datePublished" datetime="2020-11-12T15:47:51+08:00">2020-11-12</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%BA%E5%88%B6%E5%88%86%E6%9E%90/" itemprop="url" rel="index">
+                    <span itemprop="name">机制分析</span>
+                  </a>
+                </span>
+            </span>
+
+          
+            <span id="/2020/11/12/tensorflow%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9C%BA%E5%88%B6/" class="post-meta-item leancloud_visitors" data-flag-title="tensorflow的计算图机制" title="阅读次数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              <span class="post-meta-item-text">阅读次数：</span>
+              <span class="leancloud-visitors-count"></span>
+            </span>
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2020/11/12/tensorflow%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9C%BA%E5%88%B6/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2020/11/12/tensorflow%E7%9A%84%E8%AE%A1%E7%AE%97%E5%9B%BE%E6%9C%BA%E5%88%B6/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在实现变分词嵌入版的itag时，我被tensorflow的上古老版本和新版之间的差异折腾麻了，但折腾的过程也让我了解到了很多tensorflow的底层机制。尤其是一大堆eager Excution执行模式的相关报错让我充分了解了计算图机制。</p>
+<a id="more"></a>
+
+<h2 id="引入"><a href="#引入" class="headerlink" title="引入"></a>引入</h2><p>现代机器学习的基础是链式求导法则，计算完损失之后可以沿梯度反向传播以学习参数。</p>
+<p>计算图储存了整个模型的的计算流程，即各个变量间的传递、依赖关系。</p>
+<p>如果你尝试过在通过tensorflow1.X构建的模型中使用print打印出中间变量的话，你会发现点击运行之后，print函数只会运行一次，并且通常也不会打印出你想要的东西。</p>
+<h2 id="静态计算图"><a href="#静态计算图" class="headerlink" title="静态计算图"></a>静态计算图</h2><p>这是因为tensorflow使用了静态计算图，当你运行程序时，tensorflow会首先不带数据的运行python代码，验证模型是否可运行，也就是各个输入输出的维度、尺寸是否对的上，并且在这个过程中完成计算图的构建。</p>
+<p>在这个过程中，print函数会被运行数次（一般是一次），但是因为这个时候模型的内部变量是没有实际数据的，打印出来也没有任何意义。</p>
+<p>当计算图构建完成后，tensorflow就会利用生成的静态计算图完成模型的训练，剩下的计算过程在底层的C++代码中完成，python代码不会再执行，所以print函数不会再触发（假设它能触发也读不到底层C++模块里的值）</p>
+<p>静态计算图的好处是计算速度快，并且静态计算图会对计算流程进行一定的优化，例如剪去某些不需要的计算。</p>
+<p>代价就是用起来非常的僵硬，中间值是看不了的，无论如何也看不了，因为它在底层的C++代码里，随意的插入python代码对处理某些tensorflow不方便处理的情况也是不可能的，因为静态图一旦生成完毕，实质上就和python无关了。</p>
+<h2 id="动态计算图"><a href="#动态计算图" class="headerlink" title="动态计算图"></a>动态计算图</h2><p>tensorflow2.0引入了动态计算图（实际上在高版本的tensorflow1.X中就已经有了），动态计算图不需要先以空值运算一遍生成程序的计算图，而是定义后立即可以使用，因此也被称为eager excution，在编程时和普通的python代码一样使用即可。</p>
+<p>（eager excution谷歌翻译给翻成急切执行，当时看的我一脸懵逼）</p>
+<p>好处就是编程的灵活性大大的提高，可以任意打印中间值调试，可以任意插入python代码 ，可以直接把模块封装成python的函数。</p>
+<p>坏处就是计算速度不如静态计算图，因为动态计算图需要与python代码进行大量的交互。</p>
+<h2 id="Autograph"><a href="#Autograph" class="headerlink" title="Autograph"></a>Autograph</h2><p>tensorflow2.0默认使用动态计算图，上面提到了，动态计算图的效率不如静态计算图。如果确定一个函数不需要与python进行交互，可以使用@tf.function将其静态化，这种情况下生成的计算图称为Autograph。</p>
+<p>例如：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@tf.function</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">strjoin</span><span class="params">(x,y)</span>:</span></span><br><span class="line">    z =  tf.strings.join([x,y],separator = <span class="string">" "</span>)</span><br><span class="line">    tf.print(z) <span class="comment"># hello world</span></span><br><span class="line">    <span class="keyword">return</span> z</span><br><span class="line">result = strjoin(tf.constant(<span class="string">"hello"</span>),tf.constant(<span class="string">"world"</span>))</span><br><span class="line">print(result) <span class="comment"># tf.Tensor(b'hello world', shape=(), dtype=string)</span></span><br></pre></td></tr></table></figure>
+
+<p>所谓的不需要与python进行交互，就是指：</p>
+<ul>
+<li>函数中的所有方法均是tensorflow的方法</li>
+<li>或者是可以转换为tensorflow方法的python方法，例如while &gt; tf.while, for &gt; tf.while, if &gt; tf.cond, assert &gt; tf.assert</li>
+<li>入参，返回值和中间变量均为tensorflow的张量</li>
+</ul>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>动态计算图是好文明，eager excution是好文明。</p>
+<p>然后我选择用pytorch。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/tensorflow/" rel="tag"># tensorflow</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/10/26/%E8%87%AA%E5%AE%9A%E4%B9%89%E5%B1%82%E6%8A%A5%E9%94%99-ValueError/" rel="prev" title="自定义层报错：ValueError: An operation has `None` for gradient.">
+      <i class="fa fa-chevron-left"></i> 自定义层报错：ValueError: An operation has `None` for gradient.
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2020/11/18/centos-7%E5%88%9B%E5%BB%BA%E5%B8%A6%E5%8F%82%E6%95%B0%E7%9A%84%E8%87%AA%E5%90%AF%E5%8A%A8%E6%9C%8D%E5%8A%A1/" rel="next" title="centos 7创建带参数的自启动服务">
+      centos 7创建带参数的自启动服务 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    <div class="comments" id="valine-comments"></div>
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let activeClass = CONFIG.comments.activeClass;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#引入"><span class="nav-number">1.</span> <span class="nav-text">引入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#静态计算图"><span class="nav-number">2.</span> <span class="nav-text">静态计算图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#动态计算图"><span class="nav-number">3.</span> <span class="nav-text">动态计算图</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Autograph"><span class="nav-number">4.</span> <span class="nav-text">Autograph</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">5.</span> <span class="nav-text">总结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">ShuiQu</p>
+  <div class="site-description" itemprop="description">一直摸鱼一直爽</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives">
+          <span class="site-state-item-count">26</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">23</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2021</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">ShuiQu</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v4.1.1
+  </div>
+  <span class="post-meta-divider">|</span>
+  <div class="theme-info">主题 – <a href="https://pisces.theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Pisces</a> v7.6.0
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el: '#valine-comments',
+      verify: false,
+      notify: false,
+      appId: 'wSTPHhQjMaXQJKPImj6BI7Qt-gzGzoHsz',
+      appKey: 'pwRjDdVpxy5DcuwG8kMtytgS',
+      placeholder: "Just go go",
+      avatar: 'mm',
+      meta: guest,
+      pageSize: '10' || 10,
+      visitor: true,
+      lang: '' || 'zh-cn',
+      path: location.pathname,
+      recordIP: false,
+      serverURLs: ''
+    });
+  }, window.Valine);
+});
+</script>
+
+</body>
+</html>
