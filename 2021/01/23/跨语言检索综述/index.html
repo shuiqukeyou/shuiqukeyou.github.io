@@ -54,7 +54,7 @@
 <meta property="og:site_name" content="ShuiQU">
 <meta property="og:description" content="简单的介绍了一下跨语言信息检索的发展状况。 （因为换到个新方向所以做了这个） （其实是拿来开题用的）">
 <meta property="article:published_time" content="2021-01-23T12:55:48.000Z">
-<meta property="article:modified_time" content="2021-02-06T13:00:44.548Z">
+<meta property="article:modified_time" content="2021-02-10T07:23:27.799Z">
 <meta property="article:author" content="ShuiQu">
 <meta property="article:tag" content="CLIR">
 <meta name="twitter:card" content="summary">
@@ -213,7 +213,7 @@
                   <i class="fa fa-calendar-check-o"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-02-06 21:00:44" itemprop="dateModified" datetime="2021-02-06T21:00:44+08:00">2021-02-06</time>
+                <time title="修改时间：2021-02-10 15:23:27" itemprop="dateModified" datetime="2021-02-10T15:23:27+08:00">2021-02-10</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -283,6 +283,38 @@
 <p>在线学习排名(online learning to rank)： CLIR模型返回的结果的噪声较大，排名的精确度不如单语言检索。Rahimi等人在CLIR模型中引入了在线学习排名模型[21]，这个模型基于用户交互的结果进行在线学习，相比普通的CLIR模型，这个模型返回的检索的结果的排名的精确度有明显提升，同时向用户提供了个性化检索。</p>
 <p>对翻译的排名模型：前已述及，翻译质量对于基于翻译的CLIR模型的质量有相当大的影响，Hieber等创建了一个适用于机器翻译的Ranking模型[22]。这个模型使用了一些成熟的机器翻译模型，根据输入的查询文本和机器翻译模型返回的翻译结果，对翻译结果进行排序，选择出最优的翻译结果后用于检索任务，相比单独使用成熟的机器翻译模型，这个对于翻译结果进行排序的模型展现出了积极的作用。</p>
 <h2 id="结论和展望"><a href="#结论和展望" class="headerlink" title="结论和展望"></a>结论和展望</h2><p>综上所述，在解决跨语言问题的方面，基于翻译和基于语义的方法表现出了各自的优势，得益于近几年机器翻译技术的突破，基于翻译的CLIR技术是准确度最高的。而随着深度学习的发展，基于语义的CLIR技术也有着巨大的发展潜力。但无论哪种CLIR技术都面临着用户输入的查询短且模糊的问题，查询信息的不足限制了CLIR模型的性能的进一步提升。而多任务学习对多个相关的任务进行共同学习，通过共享参数、模块在任务间共享信息[30,31]。通过在CLIR任务中引入多任务学习，可以利用辅助任务提供的信息对查询进行补充，从而提高检索的精度，因而在CLIR任务中引入多任务学习有其积极意义。</p>
+<h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><p>[1].  Zwolenski, M., &amp; Weatherill, L. (2014). The digital universe: Rich data and the increasing value of the internet of things. <em>Australian Journal of Telecommunications and the Digital Economy, 2</em>, 47. </p>
+<p>[2].  Abusalah, M., Tait, J., &amp; Oakes, M. (2009). Cross language information retrieval using multilingual ontology as translation and query expansion base. <em>Polibits</em>, (40), 13-16.</p>
+<p>[3].  Nie, J. Y., Simard, M., Isabelle, P., &amp; Durand, R. (1999, August). Cross-language information retrieval based on parallel texts and automatic mining of parallel texts from the Web. In <em>Proceedings of the 22nd annual international ACM SIGIR conference on Research and development in information retrieval</em> (pp. 74-81).</p>
+<p>[4].  Liu, P., Zheng, Z., &amp; Su, Q. (2018, December). Cross-Language Information Retrieval Based on Multiple Information. In <em>2018 IEEE/WIC/ACM International Conference on Web Intelligence (WI)</em> (pp. 623-626). IEEE. </p>
+<p>[5].  Oard, D. W., He, D., &amp; Wang, J. (2008). User-assisted query translation for interactive cross-language information retrieval. <em>Information Processing &amp; Management</em>, <em>44</em>(1), 181-211.</p>
+<p>[6].  Elayeb, B., Romdhane, W. B., &amp; Saoud, N. B. B. (2018). Towards a new possibilistic query translation tool for cross-language information retrieval. <em>Multimedia Tools and Applications</em>, <em>77</em>(2), 2423-2465. </p>
+<p>[7].  Chandra, G., &amp; Dwivedi, S. K. (2017). Assessing Query Translation Quality Using Back Translation in Hindi-English CLIR. <em>International Journal of Intelligent Systems &amp; Applications</em>, <em>9</em>(3). </p>
+<p>[8].  Yarmohammadi, M., Ma, X., Hisamoto, S., Rahman, M., Wang, Y., Xu, H., … &amp; Duh, K. (2019). Robust Document Representations for Cross-Lingual Information Retrieval in Low-Resource Settings. In <em>Proceedings of Machine Translation Summit XVII Volume 1: Research Track</em> (pp. 12-20). </p>
+<p>[9].  Ture, F., &amp; Lin, J. (2013, July). Flat vs. hierarchical phrase-based translation models for cross-language information retrieval. In <em>Proceedings of the 36th international ACM SIGIR conference on Research and development in information retrieval</em> (pp. 813-816).</p>
+<p>[10]. Azarbonyad, H., Shakery, A., &amp; Faili, H. (2019). A learning to rank approach for cross-language information retrieval exploiting multiple translation resources. <em>Natural Language Engineering</em>, <em>25</em>(3), 363-384.</p>
+<p>[11]. Oard, D. W., &amp; Dorr, B. J. (1998). <em>A survey of multilingual text retrieval</em>. </p>
+<p>[12]. Sujatha, P., &amp; Dhavachelvan, P. (2011). A review on the cross and multilingual information retrieval. <em>International Journal of Web &amp; Semantic Technology</em>, <em>2</em>(4), 115. </p>
+<p>[13]. Yu, P., &amp; Allan, J. (2020). A Study of Neural Matching Models for Cross-lingual IR. <em>arXiv preprint arXiv:2005.12994</em>.</p>
+<p>[14]. Litschko, R., Glavaš, G., Ponzetto, S. P., &amp; Vulić, I. (2018, June). Unsupervised cross-lingual information retrieval using monolingual data only. In <em>The 41st International ACM SIGIR Conference on Research &amp; Development in Information Retrieval</em> (pp. 1253-1256).</p>
+<p>[15]. Sun, Y., Zhao, Q., &amp; Yuan, W. (2018). Tibetan-Chinese Cross-language Topic Extraction and Alignment. <em>2018 International Conference on Big Data and Artificial Intelligence (BDAI)</em>, 67-71. </p>
+<p>[16]. Vulić, I., De Smet, W., &amp; Moens, M. F. (2013). Cross-language information retrieval models based on latent topic models trained with document-aligned comparable corpora. <em>Information Retrieval</em>, <em>16</em>(3), 331-368. </p>
+<p>[17]. Huo, Z. L., Wu, J. F., Lu, Y., &amp; Li, C. Z. (2018, March). A topic-based cross-language retrieval model with PLSA and TF-IDF. In <em>2018 IEEE 3rd International Conference on Big Data Analysis (ICBDA)</em> (pp. 340-344). IEEE. </p>
+<p>[18]. Glavaš, G., &amp; Vulić, I. (2019, April). Zero-Shot Language Transfer for Cross-Lingual Sentence Retrieval Using Bidirectional Attention Model. In <em>European Conference on Information Retrieval</em> (pp. 523-538). Springer, Cham. </p>
+<p>[19]. Jiang, Z., El-Jaroudi, A., Hartmann, W., Karakos, D., &amp; Zhao, L. (2020). Cross-lingual Information Retrieval with BERT. <em>arXiv preprint arXiv:2004.13005</em>. </p>
+<p>[20]. Abusalah, M., Tait, J., &amp; Oakes, M. (2009). Cross language information retrieval using multilingual ontology as translation and query expansion base. <em>Polibits</em>, (40), 13-16.</p>
+<p>[21]. Rahimi, R., &amp; Shakery, A. (2017). Online Learning to Rank for Cross-Language Information Retrieval. <em>Proceedings of the 40th International ACM SIGIR Conference on Research and Development in Information Retrieval</em>.</p>
+<p>[22]. Hieber, F. (2015). <em>Translation-based ranking in cross-language information retrieval</em> (Doctoral dissertation).</p>
+<p>[23]. Xiaoning, H., Peidong, W., Haoliang, Q., Muyun, Y., Guohua, L., &amp; Yong, X. (2008). Using Google Translation in Cross-Lingual Information Retrieval. In <em>Proceedings of NTCIR-7 Workshop Meeting</em> (pp. 16-19).</p>
+<p>[24]. Chen, G., Chen, C., Xing, Z., &amp; Xu, B. (2016, September). Learning a dual-language vector space for domain-specific cross-lingual question retrieval. In <em>2016 31st IEEE/ACM International Conference on Automated Software Engineering (ASE)</em> (pp. 744-755). IEEE. </p>
+<p>[25]. Harris, Z. S. (1954). Distributional structure. <em>Word</em>, <em>10</em>(2-3), 146-162. </p>
+<p>[26]. Bengio, Y. (2008). Neural net language models. <em>Scholarpedia</em>, <em>3</em>(1), 3881.</p>
+<p>[27]. Mikolov, T., Chen, K., Corrado, G., &amp; Dean, J. (2013). Efficient estimation of word representations in vector space. <em>arXiv preprint arXiv:1301.3781</em>. </p>
+<p>[28]. Pennington, J., Socher, R., &amp; Manning, C. D. (2014, October). Glove: Global vectors for word representation. In <em>Proceedings of the 2014 conference on empirical methods in natural language processing (EMNLP)</em> (pp. 1532-1543). </p>
+<p>[29]. Ruder, S., Vulić, I., &amp; Søgaard, A. (2019). A survey of cross-lingual word embedding models. <em>Journal of Artificial Intelligence Research</em>, <em>65</em>, 569-631. </p>
+<p>[30]. Zhang, Y., &amp; Yang, Q. (2017). A survey on multi-task learning. <em>arXiv preprint arXiv:1707.08114</em>.</p>
+<p>[31]. Balikas, G., Moura, S., &amp; Amini, M. R. (2017, August). Multitask learning for fine-grained twitter sentiment analysis. In <em>Proceedings of the 40th international ACM SIGIR conference on research and development in information retrieval</em> (pp. 1005-1008).</p>
+<p>[32]. 彭晓娅, &amp; 周栋. (2020). 跨语言词向量研究综述. <em>中文信息学报</em>, <em>34</em>(2), 1-15.</p>
 
     </div>
 
@@ -368,7 +400,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CLIR技术方法"><span class="nav-number">2.</span> <span class="nav-text">CLIR技术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于翻译的CLIR技术"><span class="nav-number">2.1.</span> <span class="nav-text">基于翻译的CLIR技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查询翻译"><span class="nav-number">2.1.1.</span> <span class="nav-text">查询翻译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文档翻译"><span class="nav-number">2.1.2.</span> <span class="nav-text">文档翻译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查询和文档翻译"><span class="nav-number">2.1.3.</span> <span class="nav-text">查询和文档翻译</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于语义的CLIR技术"><span class="nav-number">2.2.</span> <span class="nav-text">基于语义的CLIR技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于跨语言词向量"><span class="nav-number">2.2.1.</span> <span class="nav-text">基于跨语言词向量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于跨语言主题词"><span class="nav-number">2.2.2.</span> <span class="nav-text">基于跨语言主题词</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于深度语言模型"><span class="nav-number">2.2.3.</span> <span class="nav-text">基于深度语言模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一些其他的CLIR技术"><span class="nav-number">2.3.</span> <span class="nav-text">一些其他的CLIR技术</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论和展望"><span class="nav-number">3.</span> <span class="nav-text">结论和展望</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CLIR技术方法"><span class="nav-number">2.</span> <span class="nav-text">CLIR技术方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#基于翻译的CLIR技术"><span class="nav-number">2.1.</span> <span class="nav-text">基于翻译的CLIR技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查询翻译"><span class="nav-number">2.1.1.</span> <span class="nav-text">查询翻译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#文档翻译"><span class="nav-number">2.1.2.</span> <span class="nav-text">文档翻译</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#查询和文档翻译"><span class="nav-number">2.1.3.</span> <span class="nav-text">查询和文档翻译</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基于语义的CLIR技术"><span class="nav-number">2.2.</span> <span class="nav-text">基于语义的CLIR技术</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#基于跨语言词向量"><span class="nav-number">2.2.1.</span> <span class="nav-text">基于跨语言词向量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于跨语言主题词"><span class="nav-number">2.2.2.</span> <span class="nav-text">基于跨语言主题词</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#基于深度语言模型"><span class="nav-number">2.2.3.</span> <span class="nav-text">基于深度语言模型</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一些其他的CLIR技术"><span class="nav-number">2.3.</span> <span class="nav-text">一些其他的CLIR技术</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#结论和展望"><span class="nav-number">3.</span> <span class="nav-text">结论和展望</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考文献"><span class="nav-number">4.</span> <span class="nav-text">参考文献</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 
